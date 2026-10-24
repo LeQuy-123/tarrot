@@ -1,0 +1,200 @@
+"use client";
+
+import { useId, type ReactNode } from "react";
+import { useHydrated, useSettings, useWebGL } from "@/lib/hooks";
+import { DEFAULT_SETTINGS, type Settings } from "@/lib/storage/settings";
+import { playCue } from "@/lib/sound";
+import { Ornament } from "./Sigil";
+
+function Row({ label, description, children, htmlFor }: { label: string; description: string; children: ReactNode; htmlFor?: string }) {
+  return (
+    <div className="flex flex-col gap-3 border-b border-hairline py-5 last:border-0 sm:flex-row sm:items-center sm:justify-between">
+      <div className="max-w-md">
+        <label htmlFor={htmlFor} className="font-display text-xl text-parchment">
+          {label}
+        </label>
+        <p className="text-sm text-muted">{description}</p>
+      </div>
+      <div className="shrink-0">{children}</div>
+    </div>
+  );
+}
+
+function Toggle({ id, checked, onChange }: { id: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`relative h-7 w-12 rounded-full border transition ${checked ? "border-gold/70 bg-gold/30" : "border-hairline bg-void/60"}`}
+    >
+      <span
+        className={`absolute top-0.5 h-5 w-5 rounded-full transition-all ${checked ? "left-6 bg-gold-light" : "left-0.5 bg-mist/60"}`}
+      />
+    </button>
+  );
+}
+
+function Segmented<T extends string>({
+  id,
+  value,
+  options,
+  onChange,
+}: {
+  id: string;
+  value: T;
+  options: { value: T; label: string }[];
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div id={id} role="radiogroup" className="flex rounded-full border border-hairline p-0.5">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          role="radio"
+          aria-checked={value === o.value}
+          onClick={() => onChange(o.value)}
+          className={`rounded-full px-3 py-1 text-sm transition ${value === o.value ? "bg-gold/20 text-gold-light" : "text-muted hover:text-parchment"}`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function SettingsView() {
+  const [settings, update] = useSettings();
+  const hydrated = useHydrated();
+  const webgl = useWebGL();
+  const ids = {
+    sound: useId(),
+    volume: useId(),
+    motion: useId(),
+    render: useId(),
+    reversals: useId(),
+    contrast: useId(),
+    text: useId(),
+  };
+  const set = (patch: Partial<Settings>) => update(patch);
+
+  return (
+    <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
+      <header className="text-center">
+        <p className="text-xs tracking-[0.4em] text-gold uppercase">Preferences</p>
+        <h1 className="engraved mt-2 font-display text-5xl sm:text-6xl">Settings</h1>
+        <Ornament className="mx-auto mt-3 w-52 text-gold/50" />
+      </header>
+
+      <div className={`panel mt-8 rounded-2xl px-5 sm:px-7 ${hydrated ? "" : "opacity-60"}`}>
+        <h2 className="pt-5 text-xs tracking-[0.3em] text-gold uppercase">Sound</h2>
+        <Row label="Sound effects" description="Soft synthesized cues for shuffling, drawing, and revealing." htmlFor={ids.sound}>
+          <Toggle
+            id={ids.sound}
+            checked={settings.sound}
+            onChange={(v) => {
+              set({ sound: v });
+              if (v) setTimeout(() => playCue("chime"), 0);
+            }}
+          />
+        </Row>
+        <Row label="Volume" description="Overall loudness of sound effects." htmlFor={ids.volume}>
+          <input
+            id={ids.volume}
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={settings.volume}
+            disabled={!settings.sound}
+            onChange={(e) => set({ volume: Number(e.target.value) })}
+            onPointerUp={() => playCue("chime")}
+            className="w-40 accent-[#c9a45c] disabled:opacity-40"
+          />
+        </Row>
+
+        <h2 className="pt-6 text-xs tracking-[0.3em] text-gold uppercase">Animation & rendering</h2>
+        <Row
+          label="Motion"
+          description="Reduced motion makes shuffles, flips, and camera moves instant and stills the starfield."
+          htmlFor={ids.motion}
+        >
+          <Segmented
+            id={ids.motion}
+            value={settings.motion}
+            onChange={(motion) => set({ motion })}
+            options={[
+              { value: "system", label: "System" },
+              { value: "full", label: "Full" },
+              { value: "reduced", label: "Reduced" },
+            ]}
+          />
+        </Row>
+        <Row
+          label="Reading chamber"
+          description={
+            webgl === false
+              ? "WebGL is not available in this browser, so the flat 2D chamber is always used."
+              : "Use the 3D chamber, or the lighter flat 2D chamber."
+          }
+          htmlFor={ids.render}
+        >
+          <Segmented
+            id={ids.render}
+            value={settings.renderMode}
+            onChange={(renderMode) => set({ renderMode })}
+            options={[
+              { value: "auto", label: "3D" },
+              { value: "2d", label: "2D" },
+            ]}
+          />
+        </Row>
+
+        <h2 className="pt-6 text-xs tracking-[0.3em] text-gold uppercase">Reading</h2>
+        <Row label="Reversed cards" description="Allow cards to be drawn upside down, with their reversed meanings." htmlFor={ids.reversals}>
+          <Toggle id={ids.reversals} checked={settings.reversals} onChange={(reversals) => set({ reversals })} />
+        </Row>
+
+        <h2 className="pt-6 text-xs tracking-[0.3em] text-gold uppercase">Accessibility</h2>
+        <Row label="High contrast" description="Brighter secondary text and stronger outlines." htmlFor={ids.contrast}>
+          <Toggle id={ids.contrast} checked={settings.highContrast} onChange={(highContrast) => set({ highContrast })} />
+        </Row>
+        <Row label="Larger text" description="Increase the base text size across the archive." htmlFor={ids.text}>
+          <Toggle id={ids.text} checked={settings.largeText} onChange={(largeText) => set({ largeText })} />
+        </Row>
+        <div className="flex justify-end py-5">
+          <button
+            type="button"
+            onClick={() => update(DEFAULT_SETTINGS)}
+            className="text-sm text-muted underline-offset-4 hover:text-parchment hover:underline"
+          >
+            Restore defaults
+          </button>
+        </div>
+      </div>
+
+      <section className="panel mt-6 rounded-2xl p-5 text-sm text-muted sm:p-7">
+        <h2 className="font-display text-xl text-parchment">Keyboard in the chamber</h2>
+        <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
+          {[
+            ["Space / Enter / D", "Draw the next card"],
+            ["R", "Reveal the next card"],
+            ["A", "Draw and reveal all"],
+            ["← / →", "Move between revealed cards"],
+            ["S / Esc", "Skip the current animation · close a card"],
+          ].map(([k, v]) => (
+            <div key={k} className="contents">
+              <dt>
+                <kbd className="rounded border border-hairline px-1.5 py-0.5 text-xs text-parchment">{k}</kbd>
+              </dt>
+              <dd>{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    </div>
+  );
+}

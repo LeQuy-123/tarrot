@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+@theme {
+  --color-void: #05060d;
+  --color-midnight: #0b1026;
+  --color-indigo: #141a3a;
+  --color-indigo-light: #1e2650;
+  --color-gold: #c9a45c;
+  --color-gold-light: #e8d29a;
+  --color-gold-dark: #8a6d34;
+  --color-violet: #6b5ca5;
+  --color-violet-deep: #3a2f6b;
+  --color-parchment: #ece3cf;
+  --color-mist: #a9a6bd;
+  --color-ember: #d9785a;
+
+  --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-astral: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root {
+  color-scheme: dark;
+  --text-muted: var(--color-mist);
+  --hairline: rgb(201 164 92 / 0.22);
+}
+
+html[data-contrast="high"] {
+  --text-muted: #e4e0f2;
+  --hairline: rgb(232 210 154 / 0.6);
+}
+
+html[data-text="large"] {
+  font-size: 112.5%;
+}
+
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+body {
+  background: var(--color-void);
+  color: var(--color-parchment);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgb(201 164 92 / 0.35);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold-light);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@utility text-muted {
+  color: var(--text-muted);
+}
+
+@utility border-hairline {
+  border-color: var(--hairline);
+}
+
+@utility engraved {
+  /* Gold engraved text treatment for display headings */
+  background: linear-gradient(180deg, var(--color-gold-light) 0%, var(--color-gold) 55%, var(--color-gold-dark) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility panel {
+  background: linear-gradient(180deg, rgb(20 26 58 / 0.82), rgb(11 16 38 / 0.9));
+  border: 1px solid var(--hairline);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 0 0 1px rgb(5 6 13 / 0.6),
+    0 24px 60px -24px rgb(0 0 0 / 0.8);
+}
+
+/* Celestial backdrop shared by every page */
+.astral-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgb(58 47 107 / 0.45), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 85% 110%, rgb(20 26 58 / 0.9), transparent 70%),
+    radial-gradient(circle at 15% 80%, rgb(107 92 165 / 0.12), transparent 40%),
+    var(--color-void);
+}
+
+.astral-backdrop::before,
+.astral-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #e8d29a 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 12%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 34% 64%, #e8d29a 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 44%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 52% 82%, #cfc8f0 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 6% 52%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 64% 36%, #e8d29a 50%, transparent 51%),
+    radial-gradient(1px 1px at 26% 90%, #fff 50%, transparent 51%),
+    radial-gradient(1.4px 1.4px at 94% 76%, #e8d29a 50%, transparent 51%),
+    radial-gradient(1px 1px at 44% 8%, #cfc8f0 50%, transparent 51%);
+  background-size: 640px 640px;
+  opacity: 0.55;
+  animation: twinkle 9s ease-in-out infinite alternate;
+}
+
+.astral-backdrop::after {
+  background-size: 410px 410px;
+  background-position: 120px 60px;
+  opacity: 0.35;
+  animation-delay: -4s;
+}
+
+@keyframes twinkle {
+  from {
+    opacity: 0.25;
+  }
+  to {
+    opacity: 0.65;
+  }
+}
+
+@keyframes slow-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-slow-spin {
+  animation: slow-spin 120s linear infinite;
+}
+
+.animate-float {
+  animation: float 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion="full"]) .animate-slow-spin,
+  html:not([data-motion="full"]) .animate-float,
+  html:not([data-motion="full"]) .astral-backdrop::before,
+  html:not([data-motion="full"]) .astral-backdrop::after {
+    animation: none;
+  }
+}
+
+/* 2D card flip used by the non-WebGL fallback and history views */
+.flip-card {
+  perspective: 1200px;
+}
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.9s var(--ease-astral);
+}
+.flip-card[data-revealed="true"] .flip-card-inner {
+  transform: rotateY(180deg);
+}
+.flip-card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-card-front {
+  transform: rotateY(180deg);
+}

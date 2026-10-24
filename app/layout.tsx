@@ -1,0 +1,51 @@
+import type { Metadata, Viewport } from "next";
+import { Cormorant_Garamond, Inter } from "next/font/google";
+import { SiteHeader } from "@/components/ui/SiteHeader";
+import { SettingsApplier } from "@/components/ui/SettingsApplier";
+import "./globals.css";
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: {
+    default: "ARCANA — The Astral Archive",
+    template: "%s · ARCANA",
+  },
+  description:
+    "An immersive 3D tarot reading chamber with an original 78-card deck and AI-assisted interpretations for reflection.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#05060d",
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html lang="en" className={`${cormorant.variable} ${inter.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col">
+        <div className="astral-backdrop" aria-hidden="true" />
+        <SettingsApplier />
+        <a
+          href="#main"
+          className="sr-only z-50 rounded bg-gold px-3 py-2 text-void focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+        >
+          Skip to content
+        </a>
+        <SiteHeader />
+        <main id="main" className="flex flex-1 flex-col">
+          {children}
+        </main>
+      </body>
+    </html>
+  );
+}
