@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { HistoryView } from "@/components/reading/HistoryView";
-import { SiteFooter } from "@/components/ui/SiteFooter";
 
 export const metadata: Metadata = {
   title: "History",
@@ -8,10 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function HistoryPage() {
-  return (
-    <>
-      <HistoryView />
-      <SiteFooter />
-    </>
-  );
+  return <HistoryView />;
 }

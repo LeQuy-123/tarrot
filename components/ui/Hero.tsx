@@ -10,28 +10,31 @@ import { Ornament } from "./Sigil";
 
 const FEATURED = ["the-star", "the-moon", "the-sun", "the-high-priestess", "wheel-of-fortune"];
 
+// Rounded so server (Node) and browser render identical attributes: their Math.cos/sin can differ
+// in the last digit, which would otherwise cause a hydration mismatch.
+const round = (n: number) => Math.round(n * 100) / 100;
+const TICKS = Array.from({ length: 72 }, (_, i) => {
+  const a = (i / 72) * Math.PI * 2;
+  const major = i % 6 === 0;
+  const r2 = major ? 250 : 262;
+  return {
+    x1: round(300 + Math.cos(a) * 270),
+    y1: round(300 + Math.sin(a) * 270),
+    x2: round(300 + Math.cos(a) * r2),
+    y2: round(300 + Math.sin(a) * r2),
+    major,
+  };
+});
+
 function Astrolabe() {
   return (
     <svg viewBox="0 0 600 600" className="h-full w-full" aria-hidden="true" fill="none" stroke="currentColor">
       <g className="animate-slow-spin origin-center" style={{ transformBox: "fill-box" }}>
         <circle cx="300" cy="300" r="290" strokeWidth="0.8" opacity="0.5" />
         <circle cx="300" cy="300" r="270" strokeWidth="0.5" strokeDasharray="2 6" opacity="0.6" />
-        {Array.from({ length: 72 }, (_, i) => {
-          const a = (i / 72) * Math.PI * 2;
-          const r1 = 270;
-          const r2 = i % 6 === 0 ? 250 : 262;
-          return (
-            <line
-              key={i}
-              x1={300 + Math.cos(a) * r1}
-              y1={300 + Math.sin(a) * r1}
-              x2={300 + Math.cos(a) * r2}
-              y2={300 + Math.sin(a) * r2}
-              strokeWidth={i % 6 === 0 ? 1.2 : 0.5}
-              opacity="0.7"
-            />
-          );
-        })}
+        {TICKS.map((t, i) => (
+          <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} strokeWidth={t.major ? 1.2 : 0.5} opacity="0.7" />
+        ))}
       </g>
       <g className="animate-slow-spin origin-center" style={{ animationDirection: "reverse", animationDuration: "180s", transformBox: "fill-box" }}>
         <circle cx="300" cy="300" r="210" strokeWidth="0.6" opacity="0.45" />

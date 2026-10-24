@@ -87,8 +87,8 @@ describe("InterpretationView", () => {
         state={{
           status: "success",
           reading: {
-            provider: "mock",
-            model: "mock-archive-1",
+            provider: "archive",
+            model: "astral-archive",
             generatedAt: new Date().toISOString(),
             interpretation: {
               theme: "Rebuilding with an open heart",
@@ -109,6 +109,6 @@ describe("InterpretationView", () => {
     for (const text of ["Rebuilding with an open heart", "About The Tower", "Tower into Ace", "Two upright cards", "What is ready to fall?", "Write it down", "A closing thought"]) {
       expect(screen.getByText(text)).toBeInTheDocument();
     }
-    expect(screen.getByText(/offline archive/)).toBeInTheDocument();
+    expect(screen.getByText(/offline archive/)).toHaveTextContent(/AI interpretation is off/);
   });
 });

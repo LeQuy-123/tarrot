@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { buildReadingContext, buildUserPrompt } from "@/lib/ai/context";
-import { generateReading, providerFromEnv, validateInterpretation } from "@/lib/ai/engine";
+import { aiStatus, generateReading, providerFromEnv, validateInterpretation } from "@/lib/ai/engine";
 import { ReadingError } from "@/lib/ai/errors";
 import { composeMockReading, createMockProvider } from "@/lib/ai/providers/mock";
 import type { ReadingProvider } from "@/lib/ai/providers/types";
@@ -112,10 +112,19 @@ describe("reading engine", () => {
   });
 
   it("selects providers from server environment only", () => {
-    expect(providerFromEnv({}).name).toBe("mock");
+    expect(() => providerFromEnv({})).toThrow(/isn't set up/);
+    expect(providerFromEnv({ ANTHROPIC_API_KEY: "sk-test" }).name).toBe("anthropic");
+    expect(providerFromEnv({ ARCANA_AI_PROVIDER: "mock" }).name).toBe("mock");
     expect(() => providerFromEnv({ ARCANA_AI_PROVIDER: "anthropic" })).toThrow(/ANTHROPIC_API_KEY/);
     expect(providerFromEnv({ ARCANA_AI_PROVIDER: "anthropic", ANTHROPIC_API_KEY: "sk-test" }).name).toBe("anthropic");
     expect(() => providerFromEnv({ ARCANA_AI_PROVIDER: "other" })).toThrow(/Unknown/);
+  });
+
+  it("reports AI availability without constructing a client", () => {
+    expect(aiStatus({})).toEqual({ available: false, provider: null });
+    expect(aiStatus({ ANTHROPIC_API_KEY: "sk-test" })).toEqual({ available: true, provider: "anthropic" });
+    expect(aiStatus({ ARCANA_AI_PROVIDER: "anthropic" })).toEqual({ available: false, provider: "anthropic" });
+    expect(aiStatus({ ARCANA_AI_PROVIDER: "mock" })).toEqual({ available: true, provider: "mock" });
   });
 
   it("marks errors as retryable or not", () => {

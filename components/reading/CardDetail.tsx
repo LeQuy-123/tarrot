@@ -57,10 +57,20 @@ export function CardDetail({
         </section>
       )}
 
-      <section>
-        <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">In this position</h3>
-        <p className="leading-relaxed text-parchment/90">{meaning.lens}</p>
-      </section>
+      {!reversed && (
+        <section>
+          <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">In this position</h3>
+          <p className="leading-relaxed text-parchment/90">{meaning.lens}</p>
+        </section>
+      )}
+      {/* Offline readings already quote the outlook; only show it separately when it adds something. */}
+      {!aiInterpretation?.includes(meaning.prediction) && (
+        <section className="rounded-xl border border-gold/25 bg-gold/5 p-3">
+          <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">Outlook</h3>
+          <p className="leading-relaxed text-parchment/95">{meaning.prediction}</p>
+          <p className="mt-1.5 text-[11px] text-muted">A prompt for reflection, not a forecast.</p>
+        </section>
+      )}
       <section>
         <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">{orientationLabel(drawn.orientation)} meaning</h3>
         <p className="leading-relaxed text-parchment/90">{meaning.meaning}</p>

@@ -62,13 +62,22 @@ function CardModal({ card, onClose }: { card: TarotCard; onClose: () => void }) 
               <h3 className="text-xs tracking-[0.25em] text-gold uppercase">Upright</h3>
               <p className="mt-1 text-sm leading-relaxed">{card.upright}</p>
               <p className="mt-2 text-xs text-muted">{card.keywords.upright.join(" · ")}</p>
+              <p className="mt-3 text-sm leading-relaxed text-parchment/85">
+                <span className="text-[11px] tracking-[0.2em] text-gold uppercase">Outlook · </span>
+                {card.prediction.upright}
+              </p>
             </section>
             <section>
               <h3 className="text-xs tracking-[0.25em] text-[#cfc6f2] uppercase">Reversed</h3>
               <p className="mt-1 text-sm leading-relaxed">{card.reversed}</p>
               <p className="mt-2 text-xs text-muted">{card.keywords.reversed.join(" · ")}</p>
+              <p className="mt-3 text-sm leading-relaxed text-parchment/85">
+                <span className="text-[11px] tracking-[0.2em] text-[#cfc6f2] uppercase">Outlook · </span>
+                {card.prediction.reversed}
+              </p>
             </section>
           </div>
+          <p className="mt-3 text-[11px] text-muted">Outlooks are prompts for reflection, not forecasts.</p>
           <section className="mt-5">
             <h3 className="text-xs tracking-[0.25em] text-gold uppercase">In the spread</h3>
             <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">

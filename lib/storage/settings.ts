@@ -9,6 +9,8 @@ export const settingsSchema = z.object({
   /** Force the 2D experience even when WebGL is available. */
   renderMode: z.enum(["auto", "2d"]).default("auto"),
   reversals: z.boolean().default(true),
+  /** Off: readings are composed locally from card meanings (no API key needed). On: the server's AI provider interprets. */
+  aiReading: z.boolean().default(false),
   highContrast: z.boolean().default(false),
   largeText: z.boolean().default(false),
 });

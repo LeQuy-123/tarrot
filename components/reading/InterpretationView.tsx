@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { DrawnCard, SpreadDefinition } from "@/types/tarot";
 import type { InterpretationState } from "@/lib/reading/machine";
 import type { ReadingInterpretation } from "@/lib/ai/schema";
@@ -111,7 +112,14 @@ export function InterpretationView({
         <p className="text-xs text-muted">
           Your cards are safe — they are already drawn and saved. Only the interpretation failed.
         </p>
-        {state.error.retryable ? (
+        {state.error.code === "configuration" ? (
+          <Link
+            href="/settings"
+            className="mt-2 rounded-full border border-gold/70 px-6 py-2 text-gold-light hover:bg-gold/10"
+          >
+            Open Settings
+          </Link>
+        ) : state.error.retryable ? (
           <button
             type="button"
             onClick={onRetry}
@@ -132,10 +140,15 @@ export function InterpretationView({
     <div className="flex flex-col gap-4">
       <InterpretationBody interpretation={reading.interpretation} spread={spread} deal={deal} onSelectCard={onSelectCard} />
       <p className="text-[11px] text-muted">
-        {reading.provider === "mock"
-          ? "Interpreted by the offline archive (development mock) from card data."
-          : `Interpreted by ${reading.model}.`}{" "}
-        A reflective reading, not a prediction or professional advice.
+        {reading.provider === "archive"
+          ? "Composed by the offline archive from each card's meaning — AI interpretation is off (see Settings)."
+          : reading.provider === "mock"
+            ? "Interpreted by the development mock provider from card data."
+            : `Interpreted by ${reading.model}.`}{" "}
+        For reflection and entertainment — not a prediction or professional advice.{" "}
+        <Link href="/legal" className="underline underline-offset-2 hover:text-parchment">
+          Legal notice
+        </Link>
       </p>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { useHydrated, useSettings, useWebGL } from "@/lib/hooks";
 import { DEFAULT_SETTINGS, type Settings } from "@/lib/storage/settings";
 import { playCue } from "@/lib/sound";
@@ -34,6 +34,39 @@ function Toggle({ id, checked, onChange }: { id: string; checked: boolean; onCha
         className={`absolute top-0.5 h-5 w-5 rounded-full transition-all ${checked ? "left-6 bg-gold-light" : "left-0.5 bg-mist/60"}`}
       />
     </button>
+  );
+}
+
+type AiStatus = { available: boolean; provider: string | null } | "unknown";
+
+/** Asks the server whether an AI provider is configured (never exposes the key itself). */
+function useAiStatus(): AiStatus {
+  const [status, setStatus] = useState<AiStatus>("unknown");
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/reading/status", { signal: controller.signal, cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((s: { available: boolean; provider: string | null }) => setStatus(s))
+      .catch(() => {
+        if (!controller.signal.aborted) setStatus({ available: false, provider: null });
+      });
+    return () => controller.abort();
+  }, []);
+  return status;
+}
+
+function AiStatusNote({ status, enabled }: { status: AiStatus; enabled: boolean }) {
+  if (status === "unknown") return <p className="mt-1 text-xs text-muted">Checking the server…</p>;
+  if (status.available) {
+    const name = status.provider === "anthropic" ? "Claude" : "the development mock provider";
+    return <p className="mt-1 text-xs text-[#9fd3a8]">Server ready: readings will be interpreted by {name}.</p>;
+  }
+  return (
+    <p className={`mt-1 text-xs ${enabled ? "text-ember" : "text-muted"}`}>
+      No AI key is configured on the server yet{enabled ? ", so AI readings will fail until one is added" : ""}. Set{" "}
+      <code className="rounded bg-void/60 px-1">ANTHROPIC_API_KEY</code> in <code className="rounded bg-void/60 px-1">.env.local</code>{" "}
+      and restart the server.
+    </p>
   );
 }
 
@@ -76,10 +109,12 @@ export function SettingsView() {
     motion: useId(),
     render: useId(),
     reversals: useId(),
+    ai: useId(),
     contrast: useId(),
     text: useId(),
   };
   const set = (patch: Partial<Settings>) => update(patch);
+  const aiStatus = useAiStatus();
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
@@ -154,6 +189,22 @@ export function SettingsView() {
         </Row>
 
         <h2 className="pt-6 text-xs tracking-[0.3em] text-gold uppercase">Reading</h2>
+        <div className="border-b border-hairline py-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="max-w-md">
+              <label htmlFor={ids.ai} className="font-display text-xl text-parchment">
+                AI interpretation
+              </label>
+              <p className="text-sm text-muted">
+                {settings.aiReading
+                  ? "On: the server's AI weaves your actual cards and question into a personal reading."
+                  : "Off: readings are composed instantly from each card's meaning in the archive. No API key or network needed."}
+              </p>
+            </div>
+            <Toggle id={ids.ai} checked={settings.aiReading} onChange={(aiReading) => set({ aiReading })} />
+          </div>
+          <AiStatusNote status={aiStatus} enabled={settings.aiReading} />
+        </div>
         <Row label="Reversed cards" description="Allow cards to be drawn upside down, with their reversed meanings." htmlFor={ids.reversals}>
           <Toggle id={ids.reversals} checked={settings.reversals} onChange={(reversals) => set({ reversals })} />
         </Row>

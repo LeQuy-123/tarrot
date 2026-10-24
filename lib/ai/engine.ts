@@ -12,9 +12,32 @@ import {
 
 const MOCK_FAILURES: MockFailure[] = ["timeout", "rate_limit", "malformed", "unavailable"];
 
+type Env = Record<string, string | undefined>;
+
+/** Explicit ARCANA_AI_PROVIDER wins; otherwise Claude when a key is present, else nothing is configured. */
+function providerName(env: Env): string {
+  const explicit = env.ARCANA_AI_PROVIDER?.trim().toLowerCase();
+  if (explicit) return explicit;
+  return env.ANTHROPIC_API_KEY ? "anthropic" : "none";
+}
+
+/** Whether the server can serve AI readings, without exposing any configuration detail. */
+export function aiStatus(env: Env = process.env): { available: boolean; provider: string | null } {
+  const name = providerName(env);
+  if (name === "anthropic") return { available: Boolean(env.ANTHROPIC_API_KEY), provider: "anthropic" };
+  if (name === "mock") return { available: true, provider: "mock" };
+  return { available: false, provider: null };
+}
+
 /** Resolves the provider from server-only environment variables. */
-export function providerFromEnv(env: Record<string, string | undefined> = process.env): ReadingProvider {
-  const name = (env.ARCANA_AI_PROVIDER ?? "mock").toLowerCase();
+export function providerFromEnv(env: Env = process.env): ReadingProvider {
+  const name = providerName(env);
+  if (name === "none") {
+    throw new ReadingError(
+      "configuration",
+      "AI reading isn't set up on this server yet. Turn off AI interpretation in Settings to use the offline archive.",
+    );
+  }
   if (name === "anthropic") {
     const apiKey = env.ANTHROPIC_API_KEY;
     if (!apiKey) {

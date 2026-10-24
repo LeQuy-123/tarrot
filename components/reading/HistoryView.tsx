@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { useHistory, useHydrated } from "@/lib/hooks";
 import { clearHistory, deleteReading, saveReading, type SavedReading } from "@/lib/storage/history";
-import { requestReading, type ReadingFailure } from "@/lib/ai/client";
+import type { ReadingFailure } from "@/lib/ai/client";
+import { interpretReading } from "@/lib/reading/interpretation";
+import { settingsStore } from "@/lib/storage/settings";
 import { getSpread } from "@/lib/tarot/spreads";
 import { getCard } from "@/lib/tarot/deck";
 import { TONE_LABELS } from "@/lib/ai/schema";
@@ -23,12 +25,10 @@ function HistoryEntry({ entry }: { entry: SavedReading }) {
   async function retry() {
     setPending(true);
     setError(null);
-    const result = await requestReading({
-      question: entry.question,
-      spreadId: entry.spreadId,
-      tone: entry.tone,
-      cards: entry.cards,
-    });
+    const result = await interpretReading(
+      { question: entry.question, spreadId: entry.spreadId, tone: entry.tone, cards: entry.cards },
+      { useAI: settingsStore.get().aiReading },
+    );
     setPending(false);
     if (result.ok) saveReading({ ...entry, reading: result.reading });
     else setError(result.error);

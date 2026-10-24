@@ -44,6 +44,19 @@ describe("deck registry", () => {
     }
   });
 
+  it("has a distinct upright and reversed prediction for every card", () => {
+    const all = DECK.flatMap((c) => [c.prediction.upright, c.prediction.reversed]);
+    expect(all).toHaveLength(156);
+    expect(new Set(all).size).toBe(156);
+    for (const card of DECK) {
+      for (const orientation of ["upright", "reversed"] as const) {
+        const text = card.prediction[orientation];
+        expect(text.length, `${card.id}.${orientation}`).toBeGreaterThan(60);
+        expect(text.split(/(?<=[.!?])\s+/).length, `${card.id}.${orientation} sentences`).toBeGreaterThanOrEqual(2);
+      }
+    }
+  });
+
   it("renders distinct, self-contained artwork for every card", () => {
     const fronts = DECK.map((c) => renderCardFront(c));
     expect(new Set(fronts).size).toBe(78);

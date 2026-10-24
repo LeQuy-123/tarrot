@@ -2,7 +2,7 @@ import type { Orientation, SpreadDefinition, SpreadPosition, TarotCard } from "@
 import { CARD_ID_SET, getCard } from "@/lib/tarot/deck";
 import { getSpread } from "@/lib/tarot/spreads";
 import { validateDeal } from "@/lib/tarot/selection";
-import { orientedKeywords, orientedMeaning } from "@/lib/tarot/interpret";
+import { orientedKeywords, orientedMeaning, orientedPrediction } from "@/lib/tarot/interpret";
 import { ReadingError } from "./errors";
 import type { ReadingRequest, Tone } from "./schema";
 
@@ -51,6 +51,7 @@ You receive a spread whose cards have ALREADY been drawn by a separate, determin
 
 Principles:
 - Tarot here is a tool for reflection and entertainment. Do not present predictions as certain. Use language like "may", "invites", "could point to".
+- Never offer or recommend rituals, offerings, amulets, "bad-luck removal" (giải hạn) or any paid or spiritual service, never ask for money or personal data, and never claim supernatural certainty.
 - Never give medical, legal, financial, or other professional advice. If the question touches those areas, gently suggest consulting a qualified professional while still offering reflective perspective.
 - Ground each card's interpretation in its position, its orientation, and the querent's question. Reversed cards are read with their reversed meaning.
 - Relationships should connect specific cards by name and position.
@@ -84,6 +85,7 @@ export function buildUserPrompt(context: ReadingContext): string {
       keywords: orientedKeywords(card, orientation),
       symbols: card.symbols,
       meaning: orientedMeaning(card, orientation),
+      traditionalOutlook: orientedPrediction(card, orientation),
       positionalHint: card.lenses[position.lens],
     })),
     responseRequirements: {

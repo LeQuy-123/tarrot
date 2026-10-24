@@ -43,6 +43,7 @@ describe("POST /api/reading", () => {
   });
 
   it("rejects malformed JSON and invalid deals with 400", async () => {
+    vi.stubEnv("ARCANA_AI_PROVIDER", "mock");
     vi.stubEnv("ARCANA_MOCK_DELAY_MS", "0");
     const { POST } = await loadRoute();
     const bad = await POST(post("{nope"));
@@ -55,6 +56,7 @@ describe("POST /api/reading", () => {
   });
 
   it("surfaces provider failures as retryable errors, never as a reading", async () => {
+    vi.stubEnv("ARCANA_AI_PROVIDER", "mock");
     vi.stubEnv("ARCANA_MOCK_DELAY_MS", "0");
     vi.stubEnv("ARCANA_MOCK_FAIL", "malformed");
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -64,6 +66,18 @@ describe("POST /api/reading", () => {
     const json = readingErrorSchema.parse(await res.json());
     expect(json.error).toMatchObject({ code: "malformed_response", retryable: true });
     expect(json).not.toHaveProperty("interpretation");
+  });
+
+  it("answers with a configuration error when no AI provider is set up", async () => {
+    vi.stubEnv("ARCANA_AI_PROVIDER", "");
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const { POST } = await loadRoute();
+    const res = await POST(post(validBody()));
+    expect(res.status).toBe(500);
+    const json = readingErrorSchema.parse(await res.json());
+    expect(json.error).toMatchObject({ code: "configuration", retryable: false });
+    expect(json.error.message).toMatch(/Settings/);
   });
 
   it("reports missing credentials as a configuration error without leaking secrets", async () => {
@@ -79,6 +93,7 @@ describe("POST /api/reading", () => {
   });
 
   it("rate limits bursts from one client", async () => {
+    vi.stubEnv("ARCANA_AI_PROVIDER", "mock");
     vi.stubEnv("ARCANA_MOCK_DELAY_MS", "0");
     const { POST } = await loadRoute();
     const statuses: number[] = [];

@@ -5,9 +5,12 @@ import { wands } from "./wands";
 import { cups } from "./cups";
 import { swords } from "./swords";
 import { pentacles } from "./pentacles";
+import { PREDICTIONS } from "./predictions";
 
-function withArtwork(card: TarotCardData): TarotCard {
-  return { ...card, artwork: artworkRef(card.id), altText: describeArtwork(card) };
+function assemble(card: TarotCardData): TarotCard {
+  const prediction = PREDICTIONS[card.id];
+  if (!prediction) throw new Error(`Missing prediction for card "${card.id}"`);
+  return { ...card, prediction, artwork: artworkRef(card.id), altText: describeArtwork(card) };
 }
 
 export const SUITS: Suit[] = ["wands", "cups", "swords", "pentacles"];
@@ -25,7 +28,7 @@ export const DECK: readonly TarotCard[] = [
   ...cups,
   ...swords,
   ...pentacles,
-].map(withArtwork);
+].map(assemble);
 
 const byId = new Map(DECK.map((card) => [card.id, card]));
 

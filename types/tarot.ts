@@ -55,6 +55,8 @@ export interface TarotCardData {
 }
 
 export interface TarotCard extends TarotCardData {
+  /** Generic outlook ("what may unfold") for each orientation, used when no AI interpreter is available. */
+  prediction: Record<Orientation, string>;
   /** Unique artwork reference, e.g. "arcana-art://the-fool". */
   artwork: string;
   /** Accessibility description of the card's artwork. */

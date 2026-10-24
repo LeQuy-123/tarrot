@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import { SiteHeader } from "@/components/ui/SiteHeader";
 import { SettingsApplier } from "@/components/ui/SettingsApplier";
+import { SiteFooter } from "@/components/ui/SiteFooter";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main id="main" className="flex flex-1 flex-col">
           {children}
         </main>
+        <SiteFooter />
       </body>
     </html>
   );

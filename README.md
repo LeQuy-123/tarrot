@@ -8,9 +8,23 @@ built-in offline mock) and are framed as reflection and entertainment, not predi
 
 ```bash
 npm install
-cp .env.example .env.local   # optional — the mock provider works with no configuration
 npm run dev                  # http://localhost:3000
 ```
+
+### Demo mode (default) and AI readings
+
+Out of the box the app runs as a **demo with no API key**: *Settings → Reading → AI interpretation* is **off**,
+and each reading is composed instantly in the browser from the cards' own meanings, positions and orientations
+(no network call). Readings made this way are labelled "offline archive".
+
+To turn on AI readings:
+
+1. `cp .env.example .env.local` and set `ANTHROPIC_API_KEY=...`
+2. Restart the server (`npm run dev` / `npm start`).
+3. Turn on **AI interpretation** in Settings. The Settings page shows whether the server has a key configured.
+
+If AI interpretation is on but no key is configured, readings show a clear "isn't set up" message with a link to
+Settings — the cards are still drawn and saved, and nothing is fabricated.
 
 | Script              | What it does                                         |
 | ------------------- | ---------------------------------------------------- |
@@ -26,8 +40,8 @@ npm run dev                  # http://localhost:3000
 
 | Variable               | Default            | Purpose                                                        |
 | ---------------------- | ------------------ | -------------------------------------------------------------- |
-| `ARCANA_AI_PROVIDER`   | `mock`             | `mock` (offline, deterministic) or `anthropic` (Claude)        |
-| `ANTHROPIC_API_KEY`    | —                  | Required when the provider is `anthropic`                      |
+| `ANTHROPIC_API_KEY`    | —                  | Enables Claude for AI readings                                 |
+| `ARCANA_AI_PROVIDER`   | auto               | Unset: Claude if a key is present, otherwise AI is unavailable. `anthropic` or `mock` force a provider |
 | `ARCANA_AI_MODEL`      | `claude-opus-5-5`  | Override the Claude model                                      |
 | `ARCANA_AI_TIMEOUT_MS` | `45000`            | Abort provider calls after this long                           |
 | `ARCANA_MOCK_FAIL`     | —                  | Mock only: simulate `timeout`, `rate_limit`, `malformed`, `unavailable` |
@@ -48,7 +62,8 @@ decline on the primary model is retried on the server's default fallback model. 
    deals the spread. **The reading is fixed at this moment.** Shuffle, cut, draw and flip animations only reveal it
    and can be skipped at any time.
 2. **Draw & reveal.** Click/tap the deck (or press Space) to draw; click/tap a card (or press R) to turn it.
-3. **Interpret (probabilistic).** When every card is revealed, the client posts `{question, spreadId, tone, cards}`
+3. **Interpret.** With AI interpretation off (the default), the browser composes the reading from deck data. With it
+   on, when every card is revealed the client posts `{question, spreadId, tone, cards}`
    to `/api/reading`. The server validates the deal (right count, right positions, no duplicates, known ids),
    rebuilds every card's meaning from its own deck data (client-sent meanings are ignored), calls the provider, and
    validates the response with Zod — including that it addresses exactly the drawn cards in order. Failures return
@@ -64,6 +79,7 @@ app/
   reading/                 the reading chamber
   deck/  history/  settings/
   api/reading/route.ts     POST endpoint (validation, rate limit, error mapping)
+  api/reading/status/      GET: is an AI provider configured?
 components/
   scene/                   R3F canvas, environment (table, rings, sky, dust), camera rig, textures
   cards/                   3D card + deck (shuffle animation), shared geometry, SVG→texture, 2D card images
@@ -78,6 +94,7 @@ lib/
   tarot/selection.ts       pure shuffle/deal/validate functions
   tarot/random.ts          crypto RNG + seeded PRNG for tests
   reading/machine.ts       pure reducer for the reading flow
+  reading/interpretation.ts  offline archive reading vs. AI endpoint, chosen by the setting
   ai/                      schemas, prompt context, engine, providers (anthropic, mock), client fetcher
   storage/                 validated localStorage stores (history, settings)
 types/tarot.ts             shared domain types
@@ -123,3 +140,16 @@ has its own emblematic illustration; minor cards use engraved suit emblems in pe
 emblems, over a star field seeded from each card's id. No third-party deck imagery is used. Known limitations: the
 art is emblematic (no human figures), pip cards 3–10 share one arrangement per number across suits, and a few small
 details (the Chariot's sphinxes, Judgement's trumpet) are crude at thumbnail size.
+
+## Legal positioning
+
+ARCANA is presented as a tool for **self-reflection, culture and entertainment**, not fortune-telling. A bilingual
+(English / Vietnamese) disclaimer appears in the footer of every page except the full-screen chamber, which links to
+the notice from its setup screen and reading panel. The full notice is at `/legal` (`app/legal/page.tsx`). It covers:
+no predictions or guarantees, not professional advice, no paid readings / rituals / "giải hạn" plus a scam warning,
+lawful use (no organising superstitious activities), AI-generated content, data and privacy, age, and artwork.
+
+Keep it that way when extending the product: avoid paid predictions, ritual or bad-luck-removal services, and
+promises about the future. The AI system prompt (`lib/ai/context.ts`) also forbids recommending rituals or paid
+services, asking for money or personal data, and claiming certainty. The notice is not legal advice — get proper
+legal review before charging users or targeting a specific market.

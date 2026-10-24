@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { DeckEncyclopedia } from "@/components/deck/DeckEncyclopedia";
-import { SiteFooter } from "@/components/ui/SiteFooter";
 
 export const metadata: Metadata = {
   title: "The Deck",
@@ -8,10 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function DeckPage() {
-  return (
-    <>
-      <DeckEncyclopedia />
-      <SiteFooter />
-    </>
-  );
+  return <DeckEncyclopedia />;
 }

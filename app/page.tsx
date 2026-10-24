@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Hero } from "@/components/ui/Hero";
 import { Ornament, Sigil } from "@/components/ui/Sigil";
-import { SiteFooter } from "@/components/ui/SiteFooter";
 import { SPREAD_ORDER, SPREADS } from "@/lib/tarot/spreads";
 
 const STEPS = [
@@ -55,7 +54,7 @@ export default function Home() {
       <section className="mx-auto w-full max-w-5xl px-4 py-16 sm:px-6" aria-labelledby="how-title">
         <div className="text-center">
           <h2 id="how-title" className="engraved font-display text-4xl sm:text-5xl">
-            The rite, in three movements
+            How it works, in three movements
           </h2>
           <Ornament className="mx-auto mt-3 w-48 text-gold/50" />
         </div>
@@ -72,8 +71,6 @@ export default function Home() {
           ))}
         </ol>
       </section>
-
-      <SiteFooter />
     </>
   );
 }

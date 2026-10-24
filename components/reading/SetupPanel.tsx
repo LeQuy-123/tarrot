@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useId } from "react";
 import { motion } from "motion/react";
 import type { SpreadId } from "@/types/tarot";
@@ -40,7 +41,9 @@ export function SetupPanel({
   tone,
   onChange,
   onBegin,
+  aiReading = false,
 }: {
+  aiReading?: boolean;
   spreadId: SpreadId;
   question: string;
   tone: Tone;
@@ -145,8 +148,19 @@ export function SetupPanel({
         >
           Shuffle the deck
         </button>
+        <p className="text-center text-xs text-muted">
+          Interpretation: <span className="text-gold-light">{aiReading ? "AI reading" : "Offline archive (no AI)"}</span> ·{" "}
+          <Link href="/settings" className="underline underline-offset-2 hover:text-parchment">
+            change
+          </Link>
+        </p>
         <p className="max-w-md text-center text-xs text-muted">
-          Readings are for reflection and entertainment — not predictions, and not medical, legal, or financial advice.
+          For reflection and entertainment only — not predictions, and not medical, legal, or financial advice.
+          <br />
+          <span lang="vi">Chỉ để chiêm nghiệm và giải trí — không phải lời tiên đoán hay tư vấn chuyên môn.</span>{" "}
+          <Link href="/legal" className="underline underline-offset-2 hover:text-parchment">
+            Legal notice
+          </Link>
         </p>
       </div>
     </motion.form>

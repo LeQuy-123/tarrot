@@ -8,7 +8,8 @@ import { getSpread } from "@/lib/tarot/spreads";
 import { shuffleDeck } from "@/lib/tarot/selection";
 import { secureRandom } from "@/lib/tarot/random";
 import { initialReadingState, readingReducer, type ReadingAction } from "@/lib/reading/machine";
-import { requestReading } from "@/lib/ai/client";
+import { interpretReading } from "@/lib/reading/interpretation";
+import { settingsStore } from "@/lib/storage/settings";
 import { newReadingId, saveReading } from "@/lib/storage/history";
 import { useReducedMotion, useSettings, useWebGL } from "@/lib/hooks";
 import { playCue } from "@/lib/sound";
@@ -163,7 +164,10 @@ export function ReadingExperience() {
     if (state.stage !== "complete" || state.interpretation.status !== "loading") return;
     const controller = new AbortController();
     const s = stateRef.current;
-    requestReading({ question: s.question.trim(), spreadId: s.spreadId, tone: s.tone, cards: s.deal }, controller.signal)
+    interpretReading(
+      { question: s.question.trim(), spreadId: s.spreadId, tone: s.tone, cards: s.deal },
+      { useAI: settingsStore.get().aiReading, signal: controller.signal },
+    )
       .then((result) => {
         if (controller.signal.aborted) return;
         if (result.ok) {
@@ -305,6 +309,7 @@ export function ReadingExperience() {
               tone={state.tone}
               onChange={(patch) => dispatch({ type: "configure", ...patch })}
               onBegin={begin}
+              aiReading={settings.aiReading}
             />
           </motion.div>
         ) : null}
