@@ -1,6 +1,8 @@
 import * as THREE from "three";
-import { CARD_ART_HEIGHT, CARD_ART_WIDTH, renderCardBack, renderCardFront } from "@/lib/tarot/art";
+import { CARD_ART_HEIGHT, CARD_ART_WIDTH, renderCardBack } from "@/lib/tarot/art";
+import { cardFrontSvg } from "@/lib/tarot/art-url";
 import { findCard } from "@/lib/tarot/deck";
+import type { Lang } from "@/lib/i18n/lang";
 import { CARD_H, CARD_T, CARD_W } from "@/components/spreads/layout";
 
 // Geometry and textures are shared across every card instance and created once.
@@ -100,13 +102,13 @@ function svgToTexture(svg: string): Promise<THREE.Texture> {
   });
 }
 
-export function loadCardTexture(cardId: string): Promise<THREE.Texture> {
-  let p = textureCache.get(cardId);
+export function loadCardTexture(cardId: string, lang: Lang): Promise<THREE.Texture> {
+  const key = `${cardId}:${lang}`;
+  let p = textureCache.get(key);
   if (!p) {
-    const card = findCard(cardId);
-    if (!card) return Promise.reject(new Error(`Unknown card ${cardId}`));
-    p = svgToTexture(renderCardFront(card));
-    textureCache.set(cardId, p);
+    if (!findCard(cardId)) return Promise.reject(new Error(`Unknown card ${cardId}`));
+    p = svgToTexture(cardFrontSvg(cardId, lang));
+    textureCache.set(key, p);
   }
   return p;
 }

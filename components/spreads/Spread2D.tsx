@@ -2,7 +2,8 @@
 
 import type { DrawnCard, SpreadDefinition } from "@/types/tarot";
 import { FlipCard } from "@/components/cards/CardImage";
-import { getCard } from "@/lib/tarot/deck";
+import { cardIn } from "@/lib/tarot/localize";
+import { useLang, useMessages } from "@/lib/i18n";
 import { spreadBounds } from "@/lib/tarot/spreads";
 
 const ASPECT = 5 / 3;
@@ -30,6 +31,8 @@ export function Spread2D({
   className?: string;
   compact?: boolean;
 }) {
+  const [lang] = useLang();
+  const m = useMessages();
   const b = spreadBounds(spread, ASPECT);
   const pad = 0.12;
   const width = b.width + pad * 2;
@@ -62,11 +65,11 @@ export function Spread2D({
             />
           );
         }
-        const card = getCard(drawn.cardId);
+        const card = cardIn(drawn.cardId, lang);
         const isRevealed = revealed[i] ?? false;
         const label = isRevealed
-          ? `${i + 1}. ${position.label}: ${card.name}, ${drawn.orientation}`
-          : `${i + 1}. ${position.label}: face down. Activate to reveal.`;
+          ? m.chamber.slotRevealed(i + 1, position.label, card.name, m.common.orientation[drawn.orientation].toLowerCase())
+          : m.chamber.slotFaceDown(i + 1, position.label);
         return (
           <button
             key={position.id}

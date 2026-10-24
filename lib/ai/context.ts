@@ -3,6 +3,8 @@ import { CARD_ID_SET, getCard } from "@/lib/tarot/deck";
 import { getSpread } from "@/lib/tarot/spreads";
 import { validateDeal } from "@/lib/tarot/selection";
 import { orientedKeywords, orientedMeaning, orientedPrediction } from "@/lib/tarot/interpret";
+import { cardIn, spreadIn } from "@/lib/tarot/localize";
+import type { Lang } from "@/lib/i18n/lang";
 import { ReadingError } from "./errors";
 import type { ReadingRequest, Tone } from "./schema";
 
@@ -19,6 +21,8 @@ export interface ReadingContext {
   tone: Tone;
   spread: SpreadDefinition;
   cards: ContextCard[];
+  /** Language the reading should be written in. Card data stays English; display names are added. */
+  language: Lang;
 }
 
 export function buildReadingContext(request: ReadingRequest): ReadingContext {
@@ -29,12 +33,24 @@ export function buildReadingContext(request: ReadingRequest): ReadingContext {
     question: request.question,
     tone: request.tone,
     spread,
+    language: request.language ?? "en",
     cards: request.cards.map((drawn, index) => ({
       index,
       position: spread.positions[index],
       card: getCard(drawn.cardId),
       orientation: drawn.orientation,
     })),
+  };
+}
+
+/** The same context with card and position display text in the reading's language (for composed readings). */
+export function localizedContext(context: ReadingContext): ReadingContext {
+  if (context.language === "en") return context;
+  const spread = spreadIn(context.spread.id, context.language);
+  return {
+    ...context,
+    spread,
+    cards: context.cards.map((c) => ({ ...c, card: cardIn(c.card.id, context.language), position: spread.positions[c.index] })),
   };
 }
 
@@ -62,7 +78,13 @@ Return JSON only, matching the requested schema. In "cards", include one entry p
 
 /** The user-turn payload: the actual drawn cards, positions, orientations and card metadata. */
 export function buildUserPrompt(context: ReadingContext): string {
+  const vi = context.language === "vi";
+  const viSpread = vi ? spreadIn(context.spread.id, "vi") : null;
   const payload = {
+    ...(vi && {
+      responseLanguage:
+        "Vietnamese. Write every field in natural, fluent Vietnamese, addressing the querent as \"bạn\". Refer to cards and positions by the Vietnamese names given (vietnameseName, vietnamesePosition). Keep positionId and cardId exactly as given.",
+    }),
     question: context.question || "(no question given — general reflection)",
     tone: `${context.tone}: ${TONE_GUIDANCE[context.tone]}`,
     spread: {
@@ -87,6 +109,7 @@ export function buildUserPrompt(context: ReadingContext): string {
       meaning: orientedMeaning(card, orientation),
       traditionalOutlook: orientedPrediction(card, orientation),
       positionalHint: card.lenses[position.lens],
+      ...(vi && { vietnameseName: cardIn(card.id, "vi").name, vietnamesePosition: viSpread?.positions[index].label }),
     })),
     responseRequirements: {
       cards: `exactly ${context.cards.length} entries, same order`,

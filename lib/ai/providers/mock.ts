@@ -1,5 +1,8 @@
-import { orientedKeywords, orientedMeaning, orientedPrediction, orientationLabel } from "@/lib/tarot/interpret";
-import type { ReadingContext } from "../context";
+import type { Element } from "@/types/tarot";
+import type { Lang } from "@/lib/i18n/lang";
+import { orientedKeywords, orientedMeaning, orientedPrediction } from "@/lib/tarot/interpret";
+import { ARCHIVE_PHRASES } from "./archive-phrases";
+import { localizedContext, type ReadingContext } from "../context";
 import { ReadingError } from "../errors";
 import type { ProviderResult, ReadingProvider } from "./types";
 
@@ -29,41 +32,31 @@ function wait(ms: number, signal: AbortSignal): Promise<void> {
  * Offline interpreter that composes a reading from deck data alone: position lenses, orientation
  * meanings and each card's generic outlook. Powers demo mode (no API key) and the mock provider.
  */
-export function composeMockReading(context: ReadingContext) {
+export function composeMockReading(context: ReadingContext, lang: Lang = "en") {
+  const p = ARCHIVE_PHRASES[lang];
   const { cards, spread, question } = context;
   const majors = cards.filter((c) => c.card.arcana === "major").length;
   const reversed = cards.filter((c) => c.orientation === "reversed").length;
-  const elements = new Map<string, number>();
+  const elements = new Map<Element, number>();
   for (const c of cards) elements.set(c.card.element, (elements.get(c.card.element) ?? 0) + 1);
   const [dominant] = [...elements.entries()].sort((a, b) => b[1] - a[1]);
+  const keyword = (c: (typeof cards)[number]) => orientedKeywords(c.card, c.orientation)[0];
 
   const anchor = cards[0];
-  const theme = `${anchor.card.archetype}: ${spread.name} centred on ${anchor.card.name} (${orientationLabel(
-    anchor.orientation,
-  ).toLowerCase()})${question ? `, read in light of "${question}"` : ""}.`;
+  const theme = p.theme(anchor.card.archetype, spread.name, anchor.card.name, p.orientation(anchor.orientation), question);
 
   const relationships: string[] = [];
   for (let i = 0; i + 1 < cards.length && relationships.length < 4; i++) {
     const a = cards[i];
     const b = cards[i + 1];
-    relationships.push(
-      `${a.card.name} in ${a.position.label} leads into ${b.card.name} in ${b.position.label}: a movement from ${orientedKeywords(a.card, a.orientation)[0]} toward ${orientedKeywords(b.card, b.orientation)[0]}.`,
-    );
+    relationships.push(p.relationship(a.card.name, a.position.label, b.card.name, b.position.label, keyword(a), keyword(b)));
   }
 
   const patterns: string[] = [];
-  if (cards.length > 1 && dominant && dominant[1] > 1) {
-    patterns.push(`${dominant[1]} cards share the element of ${dominant[0]}, colouring the reading with its qualities.`);
-  }
-  if (majors > 0 && cards.length > 1) {
-    patterns.push(
-      `${majors} of ${cards.length} cards ${majors === 1 ? "is a" : "are"} Major Arcana${majors === 1 ? " card" : ""}, suggesting larger life themes are in motion.`,
-    );
-  }
-  if (reversed > 0) {
-    patterns.push(`${reversed} reversed card${reversed > 1 ? "s point" : " points"} to energy that is blocked, internal, or still forming.`);
-  }
-  if (patterns.length === 0) patterns.push(`The spread rests on a single image: ${anchor.card.symbols.slice(0, 2).join(" and ")}.`);
+  if (cards.length > 1 && dominant && dominant[1] > 1) patterns.push(p.sharedElement(dominant[1], p.element(dominant[0])));
+  if (majors > 0 && cards.length > 1) patterns.push(p.majors(majors, cards.length));
+  if (reversed > 0) patterns.push(p.reversed(reversed));
+  if (patterns.length === 0) patterns.push(p.singleImage(anchor.card.symbols[0], anchor.card.symbols[1] ?? anchor.card.symbols[0]));
 
   // Outlook: prefer the last card read through the "outcome" lens, else the final card.
   const outlookCard = [...cards].reverse().find((c) => c.position.lens === "outcome") ?? cards[cards.length - 1];
@@ -74,29 +67,31 @@ export function composeMockReading(context: ReadingContext) {
   const nextSteps = [...new Set([adviceCard, anchor, outlookCard].map(advice))]
     .filter((step): step is string => Boolean(step))
     .slice(0, 3);
-  if (nextSteps.length === 0) nextSteps.push(`Choose one small action aligned with "${orientedKeywords(anchor.card, anchor.orientation)[0]}".`);
+  if (nextSteps.length === 0) nextSteps.push(p.fallbackStep(keyword(anchor)));
 
+  const firstOutlook = (c: (typeof cards)[number]) => sentences(orientedPrediction(c.card, c.orientation))[0];
   const summary =
     cards.length === 1
-      ? `Carry ${anchor.card.name}${anchor.orientation === "reversed" ? ", reversed," : ""} with you as a lens for what comes next. ${sentences(orientedPrediction(anchor.card, anchor.orientation))[0]} Treat this as a possibility to notice, not a verdict.`
-      : `Looking ahead, ${outlookCard.card.name}${outlookCard.orientation === "reversed" ? " reversed" : ""} in ${outlookCard.position.label} sets the tone: ${lowerFirst(sentences(orientedPrediction(outlookCard.card, outlookCard.orientation))[0])} The other cards describe how you might get there; test them against your own experience.`;
+      ? p.summarySingle(anchor.card.name, anchor.orientation === "reversed", firstOutlook(anchor))
+      : p.summaryMulti(outlookCard.card.name, outlookCard.orientation === "reversed", outlookCard.position.label, firstOutlook(outlookCard));
 
   return {
     theme,
     cards: cards.map(({ card, orientation, position }) => ({
       positionId: position.id,
       cardId: card.id,
-      interpretation: `${card.name}, ${orientationLabel(orientation).toLowerCase()}, in the ${position.label} position. ${
+      interpretation: p.card(
+        card.name,
+        p.orientation(orientation),
+        position.label,
         // Lenses are written for the upright card; reversed cards lead with their reversed meaning.
-        orientation === "upright" ? card.lenses[position.lens] : sentences(orientedMeaning(card, orientation))[0]
-      } ${orientedPrediction(card, orientation)}`,
+        orientation === "upright" ? card.lenses[position.lens] : sentences(orientedMeaning(card, orientation))[0],
+        orientedPrediction(card, orientation),
+      ),
     })),
     relationships,
     patterns,
-    reflectionQuestions: [
-      `Where in your life do you already feel ${orientedKeywords(anchor.card, anchor.orientation)[0]}?`,
-      `What would change if you trusted the message of ${outlookCard.card.name}?`,
-    ],
+    reflectionQuestions: [p.questionFeel(keyword(anchor)), p.questionTrust(outlookCard.card.name)],
     nextSteps,
     summary,
   };
@@ -104,10 +99,6 @@ export function composeMockReading(context: ReadingContext) {
 
 function sentences(text: string): string[] {
   return text.split(/(?<=[.!?])\s+/).filter(Boolean);
-}
-
-function lowerFirst(text: string): string {
-  return text ? text[0].toLowerCase() + text.slice(1) : text;
 }
 
 export function createMockProvider({ delayMs = 900, fail }: MockProviderOptions = {}): ReadingProvider {
@@ -121,7 +112,7 @@ export function createMockProvider({ delayMs = 900, fail }: MockProviderOptions 
       if (fail === "rate_limit") throw new ReadingError("rate_limited", "The archive is busy.", { retryAfterSeconds: 5 });
       if (fail === "unavailable") throw new ReadingError("provider_unavailable", "The interpreter is unavailable.");
       if (fail === "malformed") return { output: { theme: 42, cards: "nope" }, model: "mock-archive-1" };
-      return { output: composeMockReading(context), model: "mock-archive-1" };
+      return { output: composeMockReading(localizedContext(context), context.language), model: "mock-archive-1" };
     },
   };
 }

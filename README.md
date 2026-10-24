@@ -153,3 +153,25 @@ Keep it that way when extending the product: avoid paid predictions, ritual or b
 promises about the future. The AI system prompt (`lib/ai/context.ts`) also forbids recommending rituals or paid
 services, asking for money or personal data, and claiming certainty. The notice is not legal advice — get proper
 legal review before charging users or targeting a specific market.
+
+## Languages (English / Tiếng Việt)
+
+The header has an **EN / VI** toggle (also in Settings). The choice is saved in the browser; visitors whose browser
+language is Vietnamese get Vietnamese by default. Everything switches: interface (`lib/i18n/messages.ts`, with the
+Vietnamese dictionary type-checked against the English one), spreads, the full text of all 78 cards
+(`lib/tarot/deck/vi/`), card titles drawn on the artwork, the offline reading (`lib/ai/providers/archive-phrases.ts`),
+the legal notice, and AI readings (the request carries the language and the Claude prompt asks for Vietnamese with
+Vietnamese card names). Pages are rendered in English on the server and switch after load, so there is no
+hydration mismatch, but Vietnamese visitors may briefly see English on first paint.
+
+## Privacy facts the legal notice relies on
+
+Keep these true, or update `components/legal/LegalNotice.tsx` (and its "Last updated" date) when they change:
+
+- No accounts, no cookies, no advertising, no analytics, and no runtime requests to third-party hosts.
+- Reading history, settings and language live only in `localStorage` (`arcana.history.v1`, `arcana.settings.v1`,
+  `arcana.lang.v1`); Settings → "Clear all data on this device" removes all three.
+- The server keeps client IPs in memory for about one minute for rate limiting and logs error codes, not questions.
+- Questions are sent to the AI provider only when AI interpretation is on.
+- Set `NEXT_PUBLIC_ARCANA_OPERATOR`, `NEXT_PUBLIC_ARCANA_CONTACT_EMAIL` and (if required) `NEXT_PUBLIC_ARCANA_ADDRESS`
+  before launch; until then the Contact section says no contact details have been published.

@@ -1,5 +1,5 @@
 import { requestReading, type ReadingResult } from "@/lib/ai/client";
-import { buildReadingContext } from "@/lib/ai/context";
+import { buildReadingContext, localizedContext } from "@/lib/ai/context";
 import { composeMockReading } from "@/lib/ai/providers/mock";
 import { readingInterpretationSchema, readingRequestSchema, type ReadingRequest } from "@/lib/ai/schema";
 
@@ -13,7 +13,7 @@ export function composeArchiveReading(request: ReadingRequest): ReadingResult {
     return {
       ok: true,
       reading: {
-        interpretation: readingInterpretationSchema.parse(composeMockReading(context)),
+        interpretation: readingInterpretationSchema.parse(composeMockReading(localizedContext(context), context.language)),
         provider: ARCHIVE_PROVIDER,
         model: "astral-archive",
         generatedAt: new Date().toISOString(),

@@ -2,8 +2,9 @@
 
 import type { DrawnCard, SpreadPosition } from "@/types/tarot";
 import { CardFront } from "@/components/cards/CardImage";
-import { getCard, SUIT_INFO } from "@/lib/tarot/deck";
-import { orientationLabel, positionalMeaning } from "@/lib/tarot/interpret";
+import { cardIn } from "@/lib/tarot/localize";
+import { useLang, useMessages } from "@/lib/i18n";
+import { positionalMeaning } from "@/lib/tarot/interpret";
 
 export function CardDetail({
   drawn,
@@ -16,7 +17,10 @@ export function CardDetail({
   index: number;
   aiInterpretation?: string;
 }) {
-  const card = getCard(drawn.cardId);
+  const [lang] = useLang();
+  const m = useMessages();
+  const card = cardIn(drawn.cardId, lang);
+  const orientationText = m.common.orientation[drawn.orientation];
   const meaning = positionalMeaning(card, drawn.orientation, position);
   const reversed = drawn.orientation === "reversed";
   return (
@@ -39,10 +43,10 @@ export function CardDetail({
                 reversed ? "border-violet/70 bg-violet/20 text-[#cfc6f2]" : "border-gold/50 bg-gold/10 text-gold-light"
               }`}
             >
-              {orientationLabel(drawn.orientation)}
+              {orientationText}
             </span>
-            <span className="text-muted capitalize">
-              {card.suit ? `${SUIT_INFO[card.suit].name} · ${card.element}` : `Major Arcana · ${card.element}`}
+            <span className="text-muted">
+              {card.suit ? m.suits[card.suit].name : m.common.majorArcana} · {m.common.elements[card.element]}
             </span>
           </p>
         </div>
@@ -52,30 +56,30 @@ export function CardDetail({
 
       {aiInterpretation && (
         <section>
-          <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">In your reading</h3>
+          <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">{m.cardDetail.inYourReading}</h3>
           <p className="leading-relaxed text-parchment/95">{aiInterpretation}</p>
         </section>
       )}
 
       {!reversed && (
         <section>
-          <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">In this position</h3>
+          <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">{m.cardDetail.inThisPosition}</h3>
           <p className="leading-relaxed text-parchment/90">{meaning.lens}</p>
         </section>
       )}
       {/* Offline readings already quote the outlook; only show it separately when it adds something. */}
       {!aiInterpretation?.includes(meaning.prediction) && (
         <section className="rounded-xl border border-gold/25 bg-gold/5 p-3">
-          <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">Outlook</h3>
+          <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">{m.cardDetail.outlook}</h3>
           <p className="leading-relaxed text-parchment/95">{meaning.prediction}</p>
-          <p className="mt-1.5 text-[11px] text-muted">A prompt for reflection, not a forecast.</p>
+          <p className="mt-1.5 text-[11px] text-muted">{m.cardDetail.outlookNote}</p>
         </section>
       )}
       <section>
-        <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">{orientationLabel(drawn.orientation)} meaning</h3>
+        <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">{m.cardDetail.meaning(orientationText)}</h3>
         <p className="leading-relaxed text-parchment/90">{meaning.meaning}</p>
       </section>
-      <ul className="flex flex-wrap gap-1.5" aria-label="Keywords">
+      <ul className="flex flex-wrap gap-1.5" aria-label={m.cardDetail.keywords}>
         {meaning.keywords.map((k) => (
           <li key={k} className="rounded-full border border-hairline px-2.5 py-0.5 text-xs text-muted">
             {k}

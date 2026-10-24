@@ -26,6 +26,10 @@ export interface ArtInput {
   number: number;
   suit: Suit | null;
   rank: MinorRank | null;
+  /** Localised court/ace label for the header plaque (defaults to the English rank). */
+  rankLabel?: string;
+  /** Localised accessibility text; defaults to describeArtwork(). */
+  altText?: string;
 }
 
 export const CARD_ART_WIDTH = 600;
@@ -64,11 +68,14 @@ export function renderCardFront(card: ArtInput): string {
     const suit = inferSuit(card);
     const rank = card.rank ?? rankForNumber(card.number);
     art = renderMinorIllustration(ctx, suit, rank, card.number);
-    const { label, size } = minorHeaderLabel(rank, card.number);
+    const english = minorHeaderLabel(rank, card.number);
+    const label = card.rankLabel ?? english.label;
+    // Fit longer (e.g. translated) labels inside the plaque, which holds ~118px of text.
+    const size = card.rankLabel ? Math.min(english.size, (118 - 3 * label.length) / (label.length * 0.72)) : english.size;
     header = headerPlaque(label, size) + minorHeaderEmblems(suit);
   }
 
-  const alt = describeArtwork(card);
+  const alt = card.altText ?? describeArtwork(card);
   const body = [
     cardBorder(ctx),
     spandrels(isMajor),

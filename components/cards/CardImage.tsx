@@ -3,6 +3,8 @@
 import { memo } from "react";
 import type { Orientation, TarotCard } from "@/types/tarot";
 import { cardBackUrl, cardFrontUrl } from "@/lib/tarot/art-url";
+import { useLang, useMessages } from "@/lib/i18n";
+import { cardIn } from "@/lib/tarot/localize";
 
 /* eslint-disable @next/next/no-img-element -- art is generated inline SVG, not an optimisable asset */
 
@@ -17,10 +19,13 @@ export const CardFront = memo(function CardFront({
   className?: string;
   decorative?: boolean;
 }) {
+  const [lang] = useLang();
+  const m = useMessages();
+  const shown = cardIn(card.id, lang);
   return (
     <img
-      src={cardFrontUrl(card)}
-      alt={decorative ? "" : `${card.name}${orientation === "reversed" ? " (reversed)" : ""}. ${card.altText}`}
+      src={cardFrontUrl(card.id, lang)}
+      alt={decorative ? "" : `${shown.name}${orientation === "reversed" ? ` (${m.common.reversedTag})` : ""}. ${shown.altText}`}
       draggable={false}
       className={`aspect-[3/5] w-full rounded-[4.5%/2.7%] object-cover shadow-[0_10px_40px_-12px_rgb(0_0_0/0.9)] ring-1 ring-gold/30 ${
         orientation === "reversed" ? "rotate-180" : ""

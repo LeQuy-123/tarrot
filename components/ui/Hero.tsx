@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
-import { getCard } from "@/lib/tarot/deck";
+import { cardIn } from "@/lib/tarot/localize";
+import { useLang, useMessages } from "@/lib/i18n";
 import { CardBack, CardFront } from "@/components/cards/CardImage";
 import { useReducedMotion } from "@/lib/hooks";
 import { Ornament } from "./Sigil";
@@ -65,7 +66,9 @@ export function Hero() {
     return () => clearInterval(t);
   }, [reduced]);
 
-  const card = getCard(FEATURED[featured]);
+  const [lang] = useLang();
+  const m = useMessages();
+  const card = cardIn(FEATURED[featured], lang);
 
   return (
     <section
@@ -87,27 +90,26 @@ export function Hero() {
           transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
           className="text-center md:text-left"
         >
-          <p className="text-xs tracking-[0.5em] text-gold uppercase">The Astral Archive</p>
+          <p className="text-xs tracking-[0.5em] text-gold uppercase">{m.hero.eyebrow}</p>
           <h1 className="engraved mt-3 font-display text-7xl leading-[0.9] font-semibold tracking-[0.08em] sm:text-8xl lg:text-9xl">
             ARCANA
           </h1>
           <Ornament className="mx-auto mt-5 w-56 text-gold/60 md:mx-0" />
           <p className="mx-auto mt-6 max-w-md font-display text-2xl leading-snug text-parchment/90 md:mx-0">
-            A reading chamber among the stars. Shuffle an original seventy-eight card deck, draw by your own hand, and
-            reflect on what the cards reveal.
+            {m.hero.intro}
           </p>
           <div className="mt-9 flex flex-wrap justify-center gap-3 md:justify-start">
             <Link
               href="/reading"
               className="rounded-full border border-gold/70 bg-gradient-to-b from-gold/25 to-gold/5 px-8 py-3 font-display text-xl text-gold-light shadow-[0_0_34px_-8px_rgb(201_164_92/0.7)] transition hover:from-gold/35"
             >
-              Begin a reading
+              {m.hero.begin}
             </Link>
             <Link
               href="/deck"
               className="rounded-full border border-hairline px-8 py-3 font-display text-xl text-parchment/85 transition hover:border-gold/40 hover:text-parchment"
             >
-              Explore the deck
+              {m.hero.explore}
             </Link>
           </div>
         </motion.div>

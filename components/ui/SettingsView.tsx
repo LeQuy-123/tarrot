@@ -3,7 +3,9 @@
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { useHydrated, useSettings, useWebGL } from "@/lib/hooks";
 import { DEFAULT_SETTINGS, type Settings } from "@/lib/storage/settings";
+import { clearAllLocalData } from "@/lib/storage/clear";
 import { playCue } from "@/lib/sound";
+import { useLang, useMessages } from "@/lib/i18n";
 import { Ornament } from "./Sigil";
 
 function Row({ label, description, children, htmlFor }: { label: string; description: string; children: ReactNode; htmlFor?: string }) {
@@ -56,16 +58,17 @@ function useAiStatus(): AiStatus {
 }
 
 function AiStatusNote({ status, enabled }: { status: AiStatus; enabled: boolean }) {
-  if (status === "unknown") return <p className="mt-1 text-xs text-muted">Checking the server…</p>;
+  const t = useMessages().settings;
+  if (status === "unknown") return <p className="mt-1 text-xs text-muted">{t.aiChecking}</p>;
   if (status.available) {
-    const name = status.provider === "anthropic" ? "Claude" : "the development mock provider";
-    return <p className="mt-1 text-xs text-[#9fd3a8]">Server ready: readings will be interpreted by {name}.</p>;
+    const name = status.provider === "anthropic" ? "Claude" : t.aiMock;
+    return <p className="mt-1 text-xs text-[#9fd3a8]">{t.aiReady(name)}</p>;
   }
   return (
     <p className={`mt-1 text-xs ${enabled ? "text-ember" : "text-muted"}`}>
-      No AI key is configured on the server yet{enabled ? ", so AI readings will fail until one is added" : ""}. Set{" "}
-      <code className="rounded bg-void/60 px-1">ANTHROPIC_API_KEY</code> in <code className="rounded bg-void/60 px-1">.env.local</code>{" "}
-      and restart the server.
+      {t.aiMissing}
+      {enabled ? t.aiMissingOn : ""}
+      {t.aiMissingHow("ANTHROPIC_API_KEY", ".env.local")}
     </p>
   );
 }
@@ -112,21 +115,38 @@ export function SettingsView() {
     ai: useId(),
     contrast: useId(),
     text: useId(),
+    lang: useId(),
   };
+  const [lang, setLang] = useLang();
+  const t = useMessages().settings;
+  const [cleared, setCleared] = useState(false);
   const set = (patch: Partial<Settings>) => update(patch);
   const aiStatus = useAiStatus();
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
       <header className="text-center">
-        <p className="text-xs tracking-[0.4em] text-gold uppercase">Preferences</p>
-        <h1 className="engraved mt-2 font-display text-5xl sm:text-6xl">Settings</h1>
+        <p className="text-xs tracking-[0.4em] text-gold uppercase">{t.eyebrow}</p>
+        <h1 className="engraved mt-2 font-display text-5xl sm:text-6xl">{t.title}</h1>
         <Ornament className="mx-auto mt-3 w-52 text-gold/50" />
       </header>
 
       <div className={`panel mt-8 rounded-2xl px-5 sm:px-7 ${hydrated ? "" : "opacity-60"}`}>
-        <h2 className="pt-5 text-xs tracking-[0.3em] text-gold uppercase">Sound</h2>
-        <Row label="Sound effects" description="Soft synthesized cues for shuffling, drawing, and revealing." htmlFor={ids.sound}>
+        <h2 className="pt-5 text-xs tracking-[0.3em] text-gold uppercase">{t.language}</h2>
+        <Row label={t.language} description={t.languageDesc} htmlFor={ids.lang}>
+          <Segmented
+            id={ids.lang}
+            value={lang}
+            onChange={setLang}
+            options={[
+              { value: "en", label: "English" },
+              { value: "vi", label: "Tiếng Việt" },
+            ]}
+          />
+        </Row>
+
+        <h2 className="pt-6 text-xs tracking-[0.3em] text-gold uppercase">{t.sound}</h2>
+        <Row label={t.soundEffects} description={t.soundEffectsDesc} htmlFor={ids.sound}>
           <Toggle
             id={ids.sound}
             checked={settings.sound}
@@ -136,7 +156,7 @@ export function SettingsView() {
             }}
           />
         </Row>
-        <Row label="Volume" description="Overall loudness of sound effects." htmlFor={ids.volume}>
+        <Row label={t.volume} description={t.volumeDesc} htmlFor={ids.volume}>
           <input
             id={ids.volume}
             type="range"
@@ -151,10 +171,10 @@ export function SettingsView() {
           />
         </Row>
 
-        <h2 className="pt-6 text-xs tracking-[0.3em] text-gold uppercase">Animation & rendering</h2>
+        <h2 className="pt-6 text-xs tracking-[0.3em] text-gold uppercase">{t.animation}</h2>
         <Row
-          label="Motion"
-          description="Reduced motion makes shuffles, flips, and camera moves instant and stills the starfield."
+          label={t.motion}
+          description={t.motionDesc}
           htmlFor={ids.motion}
         >
           <Segmented
@@ -162,19 +182,15 @@ export function SettingsView() {
             value={settings.motion}
             onChange={(motion) => set({ motion })}
             options={[
-              { value: "system", label: "System" },
-              { value: "full", label: "Full" },
-              { value: "reduced", label: "Reduced" },
+              { value: "system", label: t.motionSystem },
+              { value: "full", label: t.motionFull },
+              { value: "reduced", label: t.motionReduced },
             ]}
           />
         </Row>
         <Row
-          label="Reading chamber"
-          description={
-            webgl === false
-              ? "WebGL is not available in this browser, so the flat 2D chamber is always used."
-              : "Use the 3D chamber, or the lighter flat 2D chamber."
-          }
+          label={t.chamber}
+          description={webgl === false ? t.chamberNoWebgl : t.chamberDesc}
           htmlFor={ids.render}
         >
           <Segmented
@@ -188,32 +204,30 @@ export function SettingsView() {
           />
         </Row>
 
-        <h2 className="pt-6 text-xs tracking-[0.3em] text-gold uppercase">Reading</h2>
+        <h2 className="pt-6 text-xs tracking-[0.3em] text-gold uppercase">{t.reading}</h2>
         <div className="border-b border-hairline py-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="max-w-md">
               <label htmlFor={ids.ai} className="font-display text-xl text-parchment">
-                AI interpretation
+                {t.ai}
               </label>
               <p className="text-sm text-muted">
-                {settings.aiReading
-                  ? "On: the server's AI weaves your actual cards and question into a personal reading."
-                  : "Off: readings are composed instantly from each card's meaning in the archive. No API key or network needed."}
+                {settings.aiReading ? t.aiOn : t.aiOff}
               </p>
             </div>
             <Toggle id={ids.ai} checked={settings.aiReading} onChange={(aiReading) => set({ aiReading })} />
           </div>
           <AiStatusNote status={aiStatus} enabled={settings.aiReading} />
         </div>
-        <Row label="Reversed cards" description="Allow cards to be drawn upside down, with their reversed meanings." htmlFor={ids.reversals}>
+        <Row label={t.reversals} description={t.reversalsDesc} htmlFor={ids.reversals}>
           <Toggle id={ids.reversals} checked={settings.reversals} onChange={(reversals) => set({ reversals })} />
         </Row>
 
-        <h2 className="pt-6 text-xs tracking-[0.3em] text-gold uppercase">Accessibility</h2>
-        <Row label="High contrast" description="Brighter secondary text and stronger outlines." htmlFor={ids.contrast}>
+        <h2 className="pt-6 text-xs tracking-[0.3em] text-gold uppercase">{t.accessibility}</h2>
+        <Row label={t.contrast} description={t.contrastDesc} htmlFor={ids.contrast}>
           <Toggle id={ids.contrast} checked={settings.highContrast} onChange={(highContrast) => set({ highContrast })} />
         </Row>
-        <Row label="Larger text" description="Increase the base text size across the archive." htmlFor={ids.text}>
+        <Row label={t.largeText} description={t.largeTextDesc} htmlFor={ids.text}>
           <Toggle id={ids.text} checked={settings.largeText} onChange={(largeText) => set({ largeText })} />
         </Row>
         <div className="flex justify-end py-5">
@@ -222,21 +236,41 @@ export function SettingsView() {
             onClick={() => update(DEFAULT_SETTINGS)}
             className="text-sm text-muted underline-offset-4 hover:text-parchment hover:underline"
           >
-            Restore defaults
+            {t.restore}
           </button>
         </div>
       </div>
 
+      <section className="panel mt-6 rounded-2xl p-5 sm:p-7" aria-labelledby="data-title">
+        <h2 id="data-title" className="text-xs tracking-[0.3em] text-gold uppercase">
+          {t.data}
+        </h2>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-md">
+            <p className="font-display text-xl text-parchment">{t.clearData}</p>
+            <p className="text-sm text-muted">{t.clearDataDesc}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (!window.confirm(t.confirmClearData)) return;
+              clearAllLocalData();
+              setCleared(true);
+            }}
+            className="shrink-0 rounded-full border border-ember/60 px-4 py-2 text-sm text-ember transition hover:bg-ember/10"
+          >
+            {t.clearData}
+          </button>
+        </div>
+        <p role="status" className="mt-2 text-sm text-[#9fd3a8]">
+          {cleared ? t.clearedData : ""}
+        </p>
+      </section>
+
       <section className="panel mt-6 rounded-2xl p-5 text-sm text-muted sm:p-7">
-        <h2 className="font-display text-xl text-parchment">Keyboard in the chamber</h2>
+        <h2 className="font-display text-xl text-parchment">{t.keyboard}</h2>
         <dl className="mt-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
-          {[
-            ["Space / Enter / D", "Draw the next card"],
-            ["R", "Reveal the next card"],
-            ["A", "Draw and reveal all"],
-            ["← / →", "Move between revealed cards"],
-            ["S / Esc", "Skip the current animation · close a card"],
-          ].map(([k, v]) => (
+          {t.keys.map(([k, v]) => (
             <div key={k} className="contents">
               <dt>
                 <kbd className="rounded border border-hairline px-1.5 py-0.5 text-xs text-parchment">{k}</kbd>

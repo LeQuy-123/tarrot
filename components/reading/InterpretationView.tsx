@@ -4,7 +4,8 @@ import Link from "next/link";
 import type { DrawnCard, SpreadDefinition } from "@/types/tarot";
 import type { InterpretationState } from "@/lib/reading/machine";
 import type { ReadingInterpretation } from "@/lib/ai/schema";
-import { getCard } from "@/lib/tarot/deck";
+import { cardIn } from "@/lib/tarot/localize";
+import { useLang, useMessages } from "@/lib/i18n";
 import { Sigil } from "@/components/ui/Sigil";
 
 function List({ title, items, ordered = false }: { title: string; items: string[]; ordered?: boolean }) {
@@ -36,17 +37,20 @@ export function InterpretationBody({
   deal: DrawnCard[];
   onSelectCard?: (index: number) => void;
 }) {
+  const [lang] = useLang();
+  const m = useMessages();
+  const t = m.interpretation;
   return (
     <div className="flex flex-col gap-6">
       <section>
-        <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">Theme</h3>
+        <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">{t.theme}</h3>
         <p className="font-display text-2xl leading-snug text-gold-light">{interpretation.theme}</p>
       </section>
       <section>
-        <h3 className="mb-2 text-xs tracking-[0.25em] text-gold uppercase">The cards</h3>
+        <h3 className="mb-2 text-xs tracking-[0.25em] text-gold uppercase">{t.theCards}</h3>
         <ol className="space-y-4">
           {interpretation.cards.map((entry, i) => {
-            const card = getCard(entry.cardId);
+            const card = cardIn(entry.cardId, lang);
             const position = spread.positions[i];
             return (
               <li key={entry.positionId} className="border-l border-gold/30 pl-3">
@@ -61,7 +65,7 @@ export function InterpretationBody({
                   </span>
                   <span className="block font-display text-lg text-parchment">
                     {card.name}
-                    {deal[i]?.orientation === "reversed" && <span className="text-sm text-[#cfc6f2] italic"> · reversed</span>}
+                    {deal[i]?.orientation === "reversed" && <span className="text-sm text-[#cfc6f2] italic"> · {m.common.reversedTag}</span>}
                   </span>
                 </button>
                 <p className="mt-1 leading-relaxed text-parchment/90">{entry.interpretation}</p>
@@ -70,12 +74,12 @@ export function InterpretationBody({
           })}
         </ol>
       </section>
-      <List title="How the cards speak to each other" items={interpretation.relationships} />
-      <List title="Patterns & tensions" items={interpretation.patterns} />
-      <List title="Questions for reflection" items={interpretation.reflectionQuestions} />
-      <List title="Practical next steps" items={interpretation.nextSteps} ordered />
+      <List title={t.relationships} items={interpretation.relationships} />
+      <List title={t.patterns} items={interpretation.patterns} />
+      <List title={t.questions} items={interpretation.reflectionQuestions} />
+      <List title={t.nextSteps} items={interpretation.nextSteps} ordered />
       <section className="rounded-xl border border-gold/30 bg-gold/5 p-4">
-        <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">Closing</h3>
+        <h3 className="mb-1 text-xs tracking-[0.25em] text-gold uppercase">{t.closing}</h3>
         <p className="font-display text-lg leading-relaxed text-parchment">{interpretation.summary}</p>
       </section>
     </div>
@@ -95,29 +99,31 @@ export function InterpretationView({
   onRetry: () => void;
   onSelectCard?: (index: number) => void;
 }) {
+  const [lang] = useLang();
+  const m = useMessages();
+  const t = m.interpretation;
   if (state.status === "idle" || state.status === "loading") {
     return (
       <div role="status" aria-live="polite" className="flex flex-col items-center gap-4 py-12 text-center">
         <Sigil className="h-14 w-14 animate-[slow-spin_6s_linear_infinite] text-gold" />
-        <p className="font-display text-xl text-gold-light">The archive is consulting the stars…</p>
-        <p className="text-sm text-muted">Weaving your {deal.length} card{deal.length > 1 ? "s" : ""} into a reading.</p>
+        <p className="font-display text-xl text-gold-light">{t.loadingTitle}</p>
+        <p className="text-sm text-muted">{t.loadingBody(deal.length)}</p>
       </div>
     );
   }
   if (state.status === "error") {
     return (
       <div role="alert" className="flex flex-col items-center gap-3 rounded-xl border border-ember/50 bg-ember/10 p-6 text-center">
-        <p className="font-display text-xl text-parchment">The reading could not be woven</p>
-        <p className="text-sm text-muted">{state.error.message}</p>
-        <p className="text-xs text-muted">
-          Your cards are safe — they are already drawn and saved. Only the interpretation failed.
-        </p>
+        <p className="font-display text-xl text-parchment">{t.errorTitle}</p>
+        {/* English keeps the server's specific message; other languages use a translated message per error code. */}
+        <p className="text-sm text-muted">{lang === "en" ? state.error.message : m.errors[state.error.code]}</p>
+        <p className="text-xs text-muted">{t.errorSafe}</p>
         {state.error.code === "configuration" ? (
           <Link
             href="/settings"
             className="mt-2 rounded-full border border-gold/70 px-6 py-2 text-gold-light hover:bg-gold/10"
           >
-            Open Settings
+            {t.openSettings}
           </Link>
         ) : state.error.retryable ? (
           <button
@@ -125,11 +131,11 @@ export function InterpretationView({
             onClick={onRetry}
             className="mt-2 rounded-full border border-gold/70 px-6 py-2 text-gold-light hover:bg-gold/10"
           >
-            Try again
+            {t.tryAgain}
           </button>
         ) : (
           <button type="button" onClick={onRetry} className="mt-2 text-sm text-gold-light underline underline-offset-4">
-            Try anyway
+            {t.tryAnyway}
           </button>
         )}
       </div>
@@ -141,13 +147,13 @@ export function InterpretationView({
       <InterpretationBody interpretation={reading.interpretation} spread={spread} deal={deal} onSelectCard={onSelectCard} />
       <p className="text-[11px] text-muted">
         {reading.provider === "archive"
-          ? "Composed by the offline archive from each card's meaning — AI interpretation is off (see Settings)."
+          ? t.byArchive
           : reading.provider === "mock"
-            ? "Interpreted by the development mock provider from card data."
-            : `Interpreted by ${reading.model}.`}{" "}
-        For reflection and entertainment — not a prediction or professional advice.{" "}
+            ? t.byMock
+            : t.byModel(reading.model)}{" "}
+        {t.disclaimer}{" "}
         <Link href="/legal" className="underline underline-offset-2 hover:text-parchment">
-          Legal notice
+          {m.common.legalNotice}
         </Link>
       </p>
     </div>

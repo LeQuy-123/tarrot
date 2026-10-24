@@ -289,6 +289,11 @@ const en = {
     language: "Language",
     languageDesc: "Choose the language of the interface and card texts.",
     restore: "Restore defaults",
+    data: "Your data",
+    clearData: "Clear all data on this device",
+    clearDataDesc: "Deletes your saved readings, settings and language choice from this browser. Nothing is stored about you on our server.",
+    confirmClearData: "Delete all ARCANA data on this device, including every saved reading? This cannot be undone.",
+    clearedData: "All ARCANA data on this device has been deleted.",
     keyboard: "Keyboard in the chamber",
     keys: [
       ["Space / Enter / D", "Draw the next card"],
@@ -300,7 +305,7 @@ const en = {
   },
   footer: {
     title: "For reflection, culture and entertainment only.",
-    body: "Readings are drawn at random and are not predictions; nothing here guarantees any future event. This is not medical, psychological, legal or financial advice. ARCANA is free: we do not offer paid readings, rituals or “giải hạn” services and will never ask you for money or bank details; anyone who does in our name is a scammer. Your readings stay in your browser; if you turn on AI interpretation, your question and cards are sent to an AI provider.",
+    body: "Readings are drawn at random and are not predictions; nothing here guarantees any future event. This is not medical, psychological, legal or financial advice. ARCANA is free: we do not offer paid readings, rituals or “giải hạn” services and will never ask you for money or bank details; anyone who does in our name is a scammer. Your readings stay in your browser, ARCANA sets no cookies and uses no advertising or tracking; if you turn on AI interpretation, your question and cards are sent to an AI provider.",
     legal: "Full legal notice",
     artwork: "Original procedurally generated artwork.",
   },
@@ -593,6 +598,11 @@ const vi: Messages = {
     language: "Ngôn ngữ",
     languageDesc: "Chọn ngôn ngữ cho giao diện và nội dung lá bài.",
     restore: "Khôi phục mặc định",
+    data: "Dữ liệu của bạn",
+    clearData: "Xóa toàn bộ dữ liệu trên thiết bị này",
+    clearDataDesc: "Xóa các lần trải bài đã lưu, cài đặt và lựa chọn ngôn ngữ khỏi trình duyệt này. Máy chủ của chúng tôi không lưu thông tin nào về bạn.",
+    confirmClearData: "Xóa toàn bộ dữ liệu ARCANA trên thiết bị này, bao gồm mọi lần trải bài đã lưu? Không thể hoàn tác.",
+    clearedData: "Đã xóa toàn bộ dữ liệu ARCANA trên thiết bị này.",
     keyboard: "Phím tắt trong phòng trải bài",
     keys: [
       ["Space / Enter / D", "Rút lá tiếp theo"],
@@ -604,7 +614,7 @@ const vi: Messages = {
   },
   footer: {
     title: "Chỉ dành cho mục đích chiêm nghiệm, tìm hiểu văn hóa và giải trí.",
-    body: "Các lá bài được rút ngẫu nhiên, không phải lời tiên đoán và không bảo đảm điều gì về tương lai. Nội dung không thay thế tư vấn y tế, tâm lý, pháp lý hay tài chính. ARCANA miễn phí: chúng tôi không xem bói có thu phí, không cúng bái hay “giải hạn”, và không bao giờ yêu cầu bạn chuyển tiền hay cung cấp thông tin ngân hàng; hãy cảnh giác với lừa đảo xem bói trực tuyến. Lịch sử trải bài chỉ lưu trên trình duyệt của bạn; khi bật diễn giải bằng AI, câu hỏi và các lá bài sẽ được gửi đến nhà cung cấp AI.",
+    body: "Các lá bài được rút ngẫu nhiên, không phải lời tiên đoán và không bảo đảm điều gì về tương lai. Nội dung không thay thế tư vấn y tế, tâm lý, pháp lý hay tài chính. ARCANA miễn phí: chúng tôi không xem bói có thu phí, không cúng bái hay “giải hạn”, và không bao giờ yêu cầu bạn chuyển tiền hay cung cấp thông tin ngân hàng; hãy cảnh giác với lừa đảo xem bói trực tuyến. Lịch sử trải bài chỉ lưu trên trình duyệt của bạn, ARCANA không đặt cookie và không dùng quảng cáo hay công cụ theo dõi; khi bật diễn giải bằng AI, câu hỏi và các lá bài sẽ được gửi đến nhà cung cấp AI.",
     legal: "Thông báo pháp lý đầy đủ",
     artwork: "Hình minh họa nguyên bản được tạo bằng thuật toán.",
   },

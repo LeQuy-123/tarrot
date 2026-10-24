@@ -3,8 +3,10 @@
 import dynamic from "next/dynamic";
 import { Component, useCallback, useEffect, useReducer, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { CARD_IDS, getCard } from "@/lib/tarot/deck";
-import { getSpread } from "@/lib/tarot/spreads";
+import { CARD_IDS } from "@/lib/tarot/deck";
+import { cardIn, spreadIn } from "@/lib/tarot/localize";
+import { MESSAGES, useLang, useMessages } from "@/lib/i18n";
+import { currentLang } from "@/lib/i18n/lang";
 import { shuffleDeck } from "@/lib/tarot/selection";
 import { secureRandom } from "@/lib/tarot/random";
 import { initialReadingState, readingReducer, type ReadingAction } from "@/lib/reading/machine";
@@ -27,10 +29,11 @@ const ReadingChamber = dynamic(() => import("@/components/scene/ReadingChamber")
 });
 
 function ChamberLoading() {
+  const m = useMessages();
   return (
     <div className="absolute inset-0 flex items-center justify-center" role="status">
       <Sigil className="h-12 w-12 animate-[slow-spin_8s_linear_infinite] text-gold/60" />
-      <span className="sr-only">Preparing the reading chamber…</span>
+      <span className="sr-only">{m.chamber.preparing}</span>
     </div>
   );
 }
@@ -79,8 +82,10 @@ export function ReadingExperience() {
   const [announcement, setAnnouncement] = useState("");
   const isDesktop = useIsDesktop();
   const createdAt = useRef<string>("");
+  const [lang] = useLang();
+  const m = useMessages();
 
-  const spread = getSpread(state.spreadId);
+  const spread = spreadIn(state.spreadId, lang);
   const use3D = webgl === true && settings.renderMode === "auto" && !sceneFailed;
   const total = state.deal.length;
 
@@ -96,12 +101,15 @@ export function ReadingExperience() {
     if (after === before) return;
     stateRef.current = after;
     rawDispatch(action);
+    // Read the language at call time so this callback can stay stable.
+    const lng = currentLang();
+    const a = MESSAGES[lng].chamber.announce;
     if (after.drawnCount > before.drawnCount) {
       playCue("draw");
       setAnnouncement(
         after.drawnCount === after.deal.length
-          ? `All ${after.deal.length} cards drawn. Reveal them when ready.`
-          : `Drew card ${after.drawnCount} of ${after.deal.length}.`,
+          ? a.allDrawn(after.deal.length)
+          : a.drew(after.drawnCount, after.deal.length),
       );
     }
     const newlyRevealed = after.revealed.findIndex((r, i) => r && !before.revealed[i]);
@@ -111,14 +119,18 @@ export function ReadingExperience() {
       const count = after.revealed.filter(Boolean).length - before.revealed.filter(Boolean).length;
       setAnnouncement(
         count > 1
-          ? "All cards revealed."
-          : `${getSpread(after.spreadId).positions[newlyRevealed].label}: ${getCard(d.cardId).name}, ${d.orientation}.`,
+          ? a.allRevealed
+          : a.revealed(
+              spreadIn(after.spreadId, lng).positions[newlyRevealed].label,
+              cardIn(d.cardId, lng).name,
+              MESSAGES[lng].common.orientation[d.orientation].toLowerCase(),
+            ),
       );
     }
     if (after.stage === "complete" && before.stage !== "complete") playCue("reveal");
     if (after.stage === "shuffling" && before.stage !== "shuffling") {
       playCue("shuffle");
-      setAnnouncement("Shuffling and cutting the deck.");
+      setAnnouncement(a.shuffling);
     }
   }, []);
 
@@ -165,7 +177,7 @@ export function ReadingExperience() {
     const controller = new AbortController();
     const s = stateRef.current;
     interpretReading(
-      { question: s.question.trim(), spreadId: s.spreadId, tone: s.tone, cards: s.deal },
+      { question: s.question.trim(), spreadId: s.spreadId, tone: s.tone, cards: s.deal, language: currentLang() },
       { useAI: settingsStore.get().aiReading, signal: controller.signal },
     )
       .then((result) => {
@@ -283,6 +295,8 @@ export function ReadingExperience() {
               reducedMotion={reducedMotion}
               skipToken={state.skipToken}
               insets={insets}
+              lang={lang}
+              reversedLabel={m.common.reversedTag}
               onDraw={onDraw}
               onCardActivate={onCardActivate}
               onShuffleComplete={onShuffleComplete}
@@ -336,14 +350,14 @@ export function ReadingExperience() {
               style={{ paddingBottom: insets.bottom + 16 }}
             >
               {webgl === false && (
-                <p className="text-xs text-muted">3D is unavailable on this device — showing the flat chamber.</p>
+                <p className="text-xs text-muted">{m.chamber.no3d}</p>
               )}
               {(state.stage === "shuffling" || state.stage === "drawing") && (
                 <button
                   type="button"
                   onClick={onDraw}
                   className={`w-20 ${state.stage === "shuffling" && !reducedMotion ? "animate-pulse" : ""}`}
-                  aria-label={`Deck. Draw card ${state.drawnCount + 1} of ${total}`}
+                  aria-label={m.chamber.deckLabel(state.drawnCount + 1, total)}
                 >
                   <CardBack />
                 </button>
@@ -368,7 +382,7 @@ export function ReadingExperience() {
             labels={spread.positions.map((p) => p.label)}
             revealed={state.revealed}
             selected={state.selected}
-            names={state.deal.map((d) => `${getCard(d.cardId).name}${d.orientation === "reversed" ? " (reversed)" : ""}`)}
+            names={state.deal.map((d) => `${cardIn(d.cardId, lang).name}${d.orientation === "reversed" ? ` (${m.common.reversedTag})` : ""}`)}
             panelCollapsed={panelCollapsed}
             panelAvailable={state.stage === "complete" || state.selected !== null}
             rightInset={panelOpen && isDesktop ? 440 : 0}
@@ -397,7 +411,7 @@ export function ReadingExperience() {
                     ? "top-[3.5rem] right-0 bottom-0 w-[440px] border-y-0 border-r-0"
                     : "inset-x-0 bottom-0 h-[52dvh] rounded-t-2xl border-x-0 border-b-0"
                 }`}
-                aria-label={state.selected !== null ? "Card details" : "Your reading"}
+                aria-label={state.selected !== null ? m.panel.cardDetails : m.panel.yourReading}
               >
                 <div className="flex items-center justify-between gap-2 border-b border-hairline px-5 py-3">
                   {state.selected !== null && state.stage === "complete" ? (
@@ -406,18 +420,18 @@ export function ReadingExperience() {
                       onClick={() => dispatch({ type: "select", index: null })}
                       className="text-sm text-gold-light hover:underline"
                     >
-                      ← Full reading
+                      {m.panel.fullReading}
                     </button>
                   ) : (
                     <span className="font-display text-lg text-gold-light">
-                      {state.selected !== null ? "Card" : "Your reading"}
+                      {state.selected !== null ? m.panel.card : m.panel.yourReading}
                     </span>
                   )}
                   <button
                     type="button"
                     onClick={() => (state.selected !== null && state.stage !== "complete" ? dispatch({ type: "select", index: null }) : setPanelCollapsed(true))}
                     className="rounded-full px-2 py-1 text-sm text-muted hover:text-parchment"
-                    aria-label="Close panel"
+                    aria-label={m.common.closePanel}
                   >
                     ✕
                   </button>
@@ -501,14 +515,15 @@ function ChamberHud(props: {
   onHudElement: (el: HTMLDivElement | null) => void;
 }) {
   const { stage, drawnCount, total, revealedCount, onHudElement } = props;
+  const h = useMessages().hud;
   const hint =
     stage === "shuffling"
-      ? "The deck is being shuffled and cut…"
+      ? h.hintShuffling
       : stage === "drawing"
-        ? `Tap the deck or press Space to draw — ${drawnCount}/${total}`
+        ? h.hintDrawing(drawnCount, total)
         : stage === "revealing"
-          ? `Tap a card to turn it over — ${revealedCount}/${total} revealed`
-          : "Your spread is complete. Tap any card to study it.";
+          ? h.hintRevealing(revealedCount, total)
+          : h.hintComplete;
   return (
     <div
       className={`fixed inset-x-0 bottom-0 z-10 px-3 pb-4 ${props.hiddenOnMobile ? "hidden" : ""}`}
@@ -522,42 +537,42 @@ function ChamberHud(props: {
           {stage === "shuffling" && (
             <>
               <HudButton onClick={props.onSkip} shortcut="S">
-                Skip shuffle
+                {h.skipShuffle}
               </HudButton>
               <HudButton onClick={props.onDraw} primary shortcut="Space">
-                Draw now
+                {h.drawNow}
               </HudButton>
             </>
           )}
           {stage === "drawing" && (
             <>
               <HudButton onClick={props.onDraw} primary shortcut="Space">
-                Draw card {drawnCount + 1}
+                {h.drawCard(drawnCount + 1)}
               </HudButton>
-              <HudButton onClick={props.onDrawAll}>Draw all</HudButton>
+              <HudButton onClick={props.onDrawAll}>{h.drawAll}</HudButton>
             </>
           )}
           {(stage === "revealing" || (stage === "drawing" && drawnCount > revealedCount)) && (
             <>
               <HudButton onClick={props.onRevealNext} primary={stage === "revealing"} shortcut="R">
-                Reveal next
+                {h.revealNext}
               </HudButton>
               {stage === "revealing" && (
                 <HudButton onClick={props.onRevealAll} shortcut="A">
-                  Reveal all
+                  {h.revealAll}
                 </HudButton>
               )}
             </>
           )}
           {stage === "complete" && props.panelAvailable && props.panelCollapsed && (
             <HudButton onClick={props.onTogglePanel} primary>
-              Show reading
+              {h.showReading}
             </HudButton>
           )}
-          <HudButton onClick={props.onRestart}>New reading</HudButton>
+          <HudButton onClick={props.onRestart}>{h.newReading}</HudButton>
         </div>
         {drawnCount > 0 && (
-          <ol className="flex gap-1.5 overflow-x-auto pb-0.5" aria-label="Drawn cards">
+          <ol className="flex gap-1.5 overflow-x-auto pb-0.5" aria-label={h.drawnCards}>
             {Array.from({ length: drawnCount }, (_, i) => (
               <li key={i} className="shrink-0">
                 <button
@@ -571,7 +586,7 @@ function ChamberHud(props: {
                   <span className="block text-muted">
                     {i + 1}. {props.labels[i]}
                   </span>
-                  <span className="block text-parchment">{props.revealed[i] ? props.names[i] : "Face down — reveal"}</span>
+                  <span className="block text-parchment">{props.revealed[i] ? props.names[i] : h.faceDown}</span>
                 </button>
               </li>
             ))}

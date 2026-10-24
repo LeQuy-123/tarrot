@@ -22,6 +22,8 @@ export const readingRequestSchema = z.object({
   spreadId: z.enum(SPREAD_ORDER as ["daily", "three-card", "decision", "celtic-cross"]),
   tone: z.enum(TONES).default("gentle"),
   cards: z.array(drawnCardSchema).min(1).max(10),
+  /** Language the interpretation should be written in (defaults to English). */
+  language: z.enum(["en", "vi"]).optional(),
 });
 
 export type ReadingRequest = z.infer<typeof readingRequestSchema>;

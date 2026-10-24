@@ -4,6 +4,7 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import type { Orientation } from "@/types/tarot";
+import type { Lang } from "@/lib/i18n/lang";
 import { CARD_T, type SlotPose } from "@/components/spreads/layout";
 import { damp, easeInOutCubic, segment } from "@/components/scene/anim";
 import { cardGeometry, loadBackTexture, loadCardTexture } from "./cardAssets";
@@ -26,6 +27,7 @@ export interface Card3DProps {
   reducedMotion: boolean;
   skipToken: number;
   index: number;
+  lang: Lang;
   onActivate: (index: number) => void;
 }
 
@@ -58,6 +60,7 @@ export const Card3D = memo(function Card3D({
   reducedMotion,
   skipToken,
   index,
+  lang,
   onActivate,
 }: Card3DProps) {
   const { edge, front, back, edgeMaterial } = cardGeometry();
@@ -68,7 +71,7 @@ export const Card3D = memo(function Card3D({
   const hovered = useRef(false);
   const lift = useRef(0);
 
-  const frontTex = useTexture(() => loadCardTexture(cardId), cardId);
+  const frontTex = useTexture(() => loadCardTexture(cardId, lang), `${cardId}:${lang}`);
   const backTex = useTexture(loadBackTexture, "__back");
 
   // Materials are derived from their textures rather than mutated when a texture arrives.

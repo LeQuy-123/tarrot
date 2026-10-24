@@ -4,7 +4,7 @@
 import type { Ctx } from "./util";
 import {
   C,
-  SERIF,
+  labelFont,
   circle,
   circleD,
   escapeXml,
@@ -103,7 +103,7 @@ export function headerPlaque(label: string, size: number): string {
   return [
     path("M214 80L238 56H362L386 80L362 104H238Z", filled(K, G, 2)),
     path("M224 80L242 62H358L376 80L358 98H242Z", stroke(SH, 1)),
-    `<text x="300" y="${f(80 + size * 0.36)}" text-anchor="middle" font-family="${SERIF}" font-size="${f(size)}" letter-spacing="3" fill="${H}">${text}</text>`,
+    `<text x="300" y="${f(80 + size * 0.36)}" text-anchor="middle" ${labelFont(label, 3)} font-size="${f(size)}" fill="${H}">${text}</text>`,
   ].join("");
 }
 
@@ -117,7 +117,7 @@ export function cartouche(name: string): string {
     path("M118 813H482Q490 829 508 834V866Q490 871 482 887H118Q110 871 92 866V834Q110 829 118 813Z", stroke(SH, 1)),
     sparkle(98, 850, 6, solid(G)),
     sparkle(502, 850, 6, solid(G)),
-    `<text x="300" y="${f(850 + fs * 0.35)}" text-anchor="middle" font-family="${SERIF}" font-size="${f(fs)}" letter-spacing="2" fill="${H}">${escapeXml(label)}</text>`,
+    `<text x="300" y="${f(850 + fs * 0.35)}" text-anchor="middle" ${labelFont(label, 2)} font-size="${f(fs)}" fill="${H}">${escapeXml(label)}</text>`,
     // footer ornament
     line(200, 928, 280, 928, stroke(SH, 1)),
     line(320, 928, 400, 928, stroke(SH, 1)),

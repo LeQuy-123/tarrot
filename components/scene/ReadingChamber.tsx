@@ -10,6 +10,8 @@ import { Deck3D, deckTopY } from "@/components/cards/Deck3D";
 import { CARD_H, CARD_W, computeLayout, type SpreadLayout } from "@/components/spreads/layout";
 import type { Stage } from "@/lib/reading/machine";
 import { findCard } from "@/lib/tarot/deck";
+import { localizeCard } from "@/lib/tarot/localize";
+import type { Lang } from "@/lib/i18n/lang";
 import { ChamberEnvironment } from "./Environment";
 import { CameraRig, type ViewInsets } from "./CameraRig";
 
@@ -23,6 +25,9 @@ export interface ChamberProps {
   reducedMotion: boolean;
   skipToken: number;
   insets: ViewInsets;
+  /** Spread labels and card names arrive localised; textures need the language too. */
+  lang: Lang;
+  reversedLabel: string;
   onDraw: () => void;
   onCardActivate: (index: number) => void;
   onShuffleComplete: () => void;
@@ -74,12 +79,16 @@ function SlotBadges({
   deal,
   revealed,
   showLabels,
+  lang,
+  reversedLabel,
 }: {
   spread: SpreadDefinition;
   layout: SpreadLayout;
   deal: DrawnCard[];
   revealed: boolean[];
   showLabels: boolean;
+  lang: Lang;
+  reversedLabel: string;
 }) {
   return (
     <>
@@ -89,7 +98,8 @@ function SlotBadges({
         const pos: [number, number, number] = turned
           ? [slot.x + CARD_H / 2 + 0.18, 0.05, slot.z]
           : [slot.x, 0.05, slot.z + CARD_H / 2 + 0.2];
-        const card = revealed[i] ? findCard(deal[i]?.cardId ?? "") : undefined;
+        const found = revealed[i] ? findCard(deal[i]?.cardId ?? "") : undefined;
+        const card = found && localizeCard(found, lang);
         return (
           <Html key={i} position={pos} center zIndexRange={[10, 0]} style={{ pointerEvents: "none" }}>
             <div aria-hidden="true" className="flex flex-col items-center gap-0.5 whitespace-nowrap text-center select-none">
@@ -104,7 +114,7 @@ function SlotBadges({
               {showLabels && card && (
                 <span className="font-display text-[12px] text-gold-light italic">
                   {card.name}
-                  {deal[i].orientation === "reversed" ? " · reversed" : ""}
+                  {deal[i].orientation === "reversed" ? ` · ${reversedLabel}` : ""}
                 </span>
               )}
             </div>
@@ -134,7 +144,15 @@ function ChamberContents(props: ChamberProps) {
       <CameraRig frame={layout.frame} insets={props.insets} reducedMotion={reducedMotion} />
       <SlotMarkers layout={layout} />
       {stage !== "setup" && (
-        <SlotBadges spread={spread} layout={layout} deal={deal} revealed={revealed} showLabels={showLabels} />
+        <SlotBadges
+          spread={spread}
+          layout={layout}
+          deal={deal}
+          revealed={revealed}
+          showLabels={showLabels}
+          lang={props.lang}
+          reversedLabel={props.reversedLabel}
+        />
       )}
       <Deck3D
         position={deckPos}
@@ -160,6 +178,7 @@ function ChamberContents(props: ChamberProps) {
           reducedMotion={reducedMotion}
           skipToken={skipToken}
           index={i}
+          lang={props.lang}
           onActivate={props.onCardActivate}
         />
       ))}

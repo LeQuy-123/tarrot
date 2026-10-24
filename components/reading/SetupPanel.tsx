@@ -5,7 +5,9 @@ import { useId } from "react";
 import { motion } from "motion/react";
 import type { SpreadId } from "@/types/tarot";
 import { SPREAD_ORDER, SPREADS } from "@/lib/tarot/spreads";
-import { TONE_LABELS, TONES, type Tone } from "@/lib/ai/schema";
+import { spreadIn } from "@/lib/tarot/localize";
+import { useLang, useMessages } from "@/lib/i18n";
+import { TONES, type Tone } from "@/lib/ai/schema";
 import { Ornament } from "@/components/ui/Sigil";
 
 function SpreadGlyph({ id }: { id: SpreadId }) {
@@ -51,6 +53,8 @@ export function SetupPanel({
   onBegin: () => void;
 }) {
   const questionId = useId();
+  const [lang] = useLang();
+  const m = useMessages();
   return (
     <motion.form
       initial={{ opacity: 0, y: 16 }}
@@ -64,18 +68,18 @@ export function SetupPanel({
       aria-labelledby="setup-title"
     >
       <div className="text-center">
-        <p className="text-xs tracking-[0.4em] text-gold uppercase">The Reading Chamber</p>
+        <p className="text-xs tracking-[0.4em] text-gold uppercase">{m.setup.eyebrow}</p>
         <h1 id="setup-title" className="engraved mt-2 font-display text-4xl sm:text-5xl">
-          Compose your reading
+          {m.setup.title}
         </h1>
         <Ornament className="mx-auto mt-3 w-48 text-gold/60" />
       </div>
 
       <fieldset className="mt-7">
-        <legend className="mb-3 font-display text-xl text-gold-light">1 · Choose a spread</legend>
+        <legend className="mb-3 font-display text-xl text-gold-light">{m.setup.chooseSpread}</legend>
         <div className="grid gap-3 sm:grid-cols-2" role="radiogroup">
           {SPREAD_ORDER.map((id) => {
-            const spread = SPREADS[id];
+            const spread = spreadIn(id, lang);
             const checked = id === spreadId;
             return (
               <label
@@ -96,7 +100,7 @@ export function SetupPanel({
                 <span className="min-w-0">
                   <span className="block font-display text-lg leading-tight text-parchment">{spread.name}</span>
                   <span className="block text-xs text-muted">
-                    {spread.positions.length} card{spread.positions.length > 1 ? "s" : ""} · {spread.tagline}
+                    {m.common.cards(spread.positions.length)} · {spread.tagline}
                   </span>
                 </span>
               </label>
@@ -107,7 +111,7 @@ export function SetupPanel({
 
       <div className="mt-7">
         <label htmlFor={questionId} className="mb-2 block font-display text-xl text-gold-light">
-          2 · Ask your question <span className="text-sm text-muted">(optional)</span>
+          {m.setup.askQuestion} <span className="text-sm text-muted">{m.setup.optional}</span>
         </label>
         <textarea
           id={questionId}
@@ -115,7 +119,7 @@ export function SetupPanel({
           maxLength={500}
           rows={2}
           onChange={(e) => onChange({ question: e.target.value })}
-          placeholder="What do I need to understand about the path ahead?"
+          placeholder={m.setup.placeholder}
           className="w-full resize-none rounded-xl border border-hairline bg-void/60 px-4 py-3 text-parchment placeholder:text-mist/50 focus:border-gold/60 focus:outline-none"
         />
         <p className="mt-1 text-right text-xs text-muted" aria-live="polite">
@@ -124,7 +128,7 @@ export function SetupPanel({
       </div>
 
       <fieldset className="mt-4">
-        <legend className="mb-3 font-display text-xl text-gold-light">3 · Interpretation tone</legend>
+        <legend className="mb-3 font-display text-xl text-gold-light">{m.setup.tone}</legend>
         <div className="flex flex-wrap gap-2" role="radiogroup">
           {TONES.map((t) => (
             <label
@@ -132,10 +136,10 @@ export function SetupPanel({
               className={`cursor-pointer rounded-full border px-4 py-1.5 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold-light ${
                 t === tone ? "border-gold/70 bg-gold/15 text-gold-light" : "border-hairline text-muted hover:text-parchment"
               }`}
-              title={TONE_LABELS[t].hint}
+              title={m.tones[t].hint}
             >
               <input type="radio" name="tone" value={t} checked={t === tone} onChange={() => onChange({ tone: t })} className="sr-only" />
-              {TONE_LABELS[t].label}
+              {m.tones[t].label}
             </label>
           ))}
         </div>
@@ -146,20 +150,18 @@ export function SetupPanel({
           type="submit"
           className="group relative overflow-hidden rounded-full border border-gold/70 bg-gradient-to-b from-gold/25 to-gold/5 px-10 py-3 font-display text-xl tracking-wide text-gold-light shadow-[0_0_30px_-8px_rgb(201_164_92/0.6)] transition hover:from-gold/35 hover:shadow-[0_0_40px_-6px_rgb(201_164_92/0.8)]"
         >
-          Shuffle the deck
+          {m.setup.shuffle}
         </button>
         <p className="text-center text-xs text-muted">
-          Interpretation: <span className="text-gold-light">{aiReading ? "AI reading" : "Offline archive (no AI)"}</span> ·{" "}
+          {m.setup.mode} <span className="text-gold-light">{aiReading ? m.setup.modeAI : m.setup.modeArchive}</span> ·{" "}
           <Link href="/settings" className="underline underline-offset-2 hover:text-parchment">
-            change
+            {m.setup.change}
           </Link>
         </p>
         <p className="max-w-md text-center text-xs text-muted">
-          For reflection and entertainment only — not predictions, and not medical, legal, or financial advice.
-          <br />
-          <span lang="vi">Chỉ để chiêm nghiệm và giải trí — không phải lời tiên đoán hay tư vấn chuyên môn.</span>{" "}
+          {m.setup.disclaimer}{" "}
           <Link href="/legal" className="underline underline-offset-2 hover:text-parchment">
-            Legal notice
+            {m.common.legalNotice}
           </Link>
         </p>
       </div>
