@@ -102,6 +102,10 @@ const en = {
     explore: "Explore the deck",
   },
   landing: {
+    ribbon: "Seventy-eight original cards, each drawn from the stars",
+    ribbonLink: "Explore the deck",
+    ctaTitle: "The cards are waiting",
+    ctaBody: "Take a breath, hold a question in mind, and draw.",
     spreadsTitle: "Four ways to ask",
     howTitle: "How it works, in three movements",
     steps: [
@@ -411,6 +415,10 @@ const vi: Messages = {
     explore: "Khám phá bộ bài",
   },
   landing: {
+    ribbon: "Bảy mươi tám lá bài nguyên bản, mỗi lá được vẽ từ những vì sao",
+    ribbonLink: "Khám phá bộ bài",
+    ctaTitle: "Những lá bài đang chờ bạn",
+    ctaBody: "Hít một hơi thật sâu, giữ một câu hỏi trong tâm trí và rút bài.",
     spreadsTitle: "Bốn cách để hỏi",
     howTitle: "Cách hoạt động, trong ba bước",
     steps: [

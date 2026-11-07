@@ -161,7 +161,151 @@ body {
   animation: float 7s ease-in-out infinite;
 }
 
+/* Landing page: moving gold highlight across display text */
+.sheen-text {
+  background: linear-gradient(
+    105deg,
+    var(--color-gold-dark) 0%,
+    var(--color-gold) 28%,
+    var(--color-gold-light) 42%,
+    #fff7da 50%,
+    var(--color-gold-light) 58%,
+    var(--color-gold) 72%,
+    var(--color-gold-dark) 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sheen 9s ease-in-out infinite alternate;
+}
+
+@keyframes sheen {
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0% 50%;
+  }
+}
+
+/* Shooting star: the bright head (right end) is rotated to lead along the travel direction */
+.shooting-star {
+  position: absolute;
+  width: 150px;
+  height: 1.5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgb(232 210 154 / 0), rgb(232 210 154 / 0.5) 60%, #fff);
+  filter: drop-shadow(0 0 6px rgb(232 210 154 / 0.9));
+  opacity: 0;
+  rotate: 156deg;
+  animation: shoot 9s ease-in infinite;
+}
+
+@keyframes shoot {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  2% {
+    opacity: 1;
+  }
+  11% {
+    opacity: 0;
+    translate: -520px 230px;
+  }
+  100% {
+    opacity: 0;
+    translate: -520px 230px;
+  }
+}
+
+/* Soft breathing glow behind the featured card */
+.aura {
+  background: radial-gradient(circle, rgb(232 210 154 / 0.35), rgb(107 92 165 / 0.18) 45%, transparent 70%);
+  animation: aura 5s ease-in-out infinite;
+}
+
+@keyframes aura {
+  0%,
+  100% {
+    opacity: 0.55;
+    scale: 0.92;
+  }
+  50% {
+    opacity: 1;
+    scale: 1.06;
+  }
+}
+
+/* Light sweep across a call-to-action button */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(115deg, transparent 30%, rgb(255 244 207 / 0.4) 50%, transparent 70%);
+  translate: -120% 0;
+  animation: shine 5s ease-in-out 1.5s infinite;
+  pointer-events: none;
+}
+
+@keyframes shine {
+  0%,
+  65% {
+    translate: -120% 0;
+  }
+  100% {
+    translate: 120% 0;
+  }
+}
+
+.glow-pulse {
+  animation: glow-pulse 3.2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 24px -8px rgb(201 164 92 / 0.6);
+  }
+  50% {
+    box-shadow: 0 0 46px -4px rgb(232 210 154 / 0.85);
+  }
+}
+
+/* Endless ribbon of cards; the track holds two copies and slides by one copy's width */
+.marquee {
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 70s linear infinite;
+}
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html:not([data-motion="full"]) .sheen-text,
+  html:not([data-motion="full"]) .shooting-star,
+  html:not([data-motion="full"]) .aura,
+  html:not([data-motion="full"]) .btn-shine::after,
+  html:not([data-motion="full"]) .glow-pulse,
+  html:not([data-motion="full"]) .marquee-track,
   html:not([data-motion="full"]) .animate-slow-spin,
   html:not([data-motion="full"]) .animate-float,
   html:not([data-motion="full"]) .astral-backdrop::before,

@@ -4,38 +4,12 @@ import Link from "next/link";
 import { useId } from "react";
 import { motion } from "motion/react";
 import type { SpreadId } from "@/types/tarot";
-import { SPREAD_ORDER, SPREADS } from "@/lib/tarot/spreads";
+import { SPREAD_ORDER } from "@/lib/tarot/spreads";
 import { spreadIn } from "@/lib/tarot/localize";
 import { useLang, useMessages } from "@/lib/i18n";
 import { TONES, type Tone } from "@/lib/ai/schema";
 import { Ornament } from "@/components/ui/Sigil";
-
-function SpreadGlyph({ id }: { id: SpreadId }) {
-  const spread = SPREADS[id];
-  const xs = spread.positions.map((p) => p.x);
-  const ys = spread.positions.map((p) => p.y);
-  const minX = Math.min(...xs) - 0.6;
-  const maxX = Math.max(...xs) + 0.6;
-  const minY = Math.min(...ys) - 0.95;
-  const maxY = Math.max(...ys) + 0.95;
-  return (
-    <svg viewBox={`${minX} ${-maxY} ${maxX - minX} ${maxY - minY}`} className="h-12 w-20" aria-hidden="true">
-      {spread.positions.map((p) => (
-        <rect
-          key={p.id}
-          x={p.x - 0.4}
-          y={-p.y - 0.67}
-          width={0.8}
-          height={1.33}
-          rx={0.08}
-          transform={p.rotation ? `rotate(${p.rotation} ${p.x} ${-p.y})` : undefined}
-          className="fill-gold/15 stroke-gold"
-          strokeWidth={0.06}
-        />
-      ))}
-    </svg>
-  );
-}
+import { SpreadGlyph } from "@/components/spreads/SpreadGlyph";
 
 export function SetupPanel({
   spreadId,

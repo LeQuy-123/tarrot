@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#2a2468"/>
+      <stop offset="0.6" stop-color="#0b1026"/>
+      <stop offset="1" stop-color="#05060d"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f3e2ae"/>
+      <stop offset="0.55" stop-color="#c9a45c"/>
+      <stop offset="1" stop-color="#8a6d34"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#sky)"/>
+  <!-- tarot card -->
+  <rect x="16" y="6" width="32" height="52" rx="4.5" fill="#0b1026" stroke="url(#gold)" stroke-width="3"/>
+  <rect x="20.5" y="10.5" width="23" height="43" rx="2" fill="none" stroke="#c9a45c" stroke-opacity="0.55" stroke-width="1.2"/>
+  <!-- eight-pointed star -->
+  <path d="M32 15 L35 26.5 L45 29 L35 31.5 L32 43 L29 31.5 L19 29 L29 26.5 Z" fill="url(#gold)"/>
+  <path d="M32 21 L33.6 27.4 L40 29 L33.6 30.6 L32 37 L30.4 30.6 L24 29 L30.4 27.4 Z" fill="#f3e2ae" transform="rotate(45 32 29)" opacity="0.8"/>
+  <!-- crescent -->
+  <path d="M28.6 48.5 a4 4 0 1 0 6.8 0 a3.2 3.2 0 1 1 -6.8 0 Z" fill="#e8d29a"/>
+</svg>

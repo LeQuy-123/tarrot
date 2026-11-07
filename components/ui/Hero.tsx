@@ -27,6 +27,18 @@ const TICKS = Array.from({ length: 72 }, (_, i) => {
   };
 });
 
+const SHOOTING_STARS = [
+  { top: "8%", left: "78%", delay: "1.5s", duration: "9s" },
+  { top: "22%", left: "102%", delay: "5.2s", duration: "11s" },
+  { top: "2%", left: "52%", delay: "8.4s", duration: "13s" },
+];
+
+const ORBIT_SPARKS = [
+  { top: "0%", left: "50%", size: 5 },
+  { top: "75%", left: "93.3%", size: 3 },
+  { top: "75%", left: "6.7%", size: 4 },
+];
+
 function Astrolabe() {
   return (
     <svg viewBox="0 0 600 600" className="h-full w-full" aria-hidden="true" fill="none" stroke="currentColor">
@@ -70,6 +82,12 @@ export function Hero() {
   const m = useMessages();
   const card = cardIn(FEATURED[featured], lang);
 
+  const ease = [0.22, 1, 0.36, 1] as const;
+  // Instant under reduced motion. Never drop the props: the server markup already holds the initial (hidden) state.
+  const timing = (duration: number, delay = 0) => (reduced ? { duration: 0 } : { duration, delay, ease });
+  // Each hero line rises in after the title has resolved.
+  const rise = (delay: number) => ({ initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 }, transition: timing(0.9, delay) });
+
   return (
     <section
       className="relative isolate overflow-hidden"
@@ -83,25 +101,48 @@ export function Hero() {
       <div className="pointer-events-none absolute top-1/2 left-1/2 -z-10 aspect-square w-[150vmin] max-w-[1100px] -translate-x-1/2 -translate-y-1/2 text-gold/50">
         <Astrolabe />
       </div>
+      {!reduced && (
+        <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+          {SHOOTING_STARS.map((s, i) => (
+            <span
+              key={i}
+              className="shooting-star"
+              style={{ top: s.top, left: s.left, animationDelay: s.delay, animationDuration: s.duration }}
+            />
+          ))}
+        </div>
+      )}
       <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] items-center gap-10 px-4 pt-14 pb-16 sm:px-6 md:grid-cols-[1.1fr_1fr] md:pt-20 md:pb-24">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center md:text-left"
-        >
-          <p className="text-xs tracking-[0.5em] text-gold uppercase">{m.hero.eyebrow}</p>
-          <h1 className="engraved mt-3 font-display text-6xl leading-[0.9] min-[360px]:text-7xl font-semibold tracking-[0.08em] sm:text-8xl lg:text-9xl">
+        <div className="text-center md:text-left">
+          <motion.p {...rise(0.1)} className="text-xs tracking-[0.5em] text-gold uppercase">
+            {m.hero.eyebrow}
+          </motion.p>
+          <motion.h1
+            initial={{ opacity: 0, letterSpacing: "0.45em", filter: "blur(14px)" }}
+            animate={{ opacity: 1, letterSpacing: "0.08em", filter: "blur(0px)" }}
+            transition={timing(1.6)}
+            className="sheen-text mt-3 font-display text-6xl leading-[0.9] font-semibold tracking-[0.08em] min-[360px]:text-7xl sm:text-8xl lg:text-9xl"
+          >
             ARCANA
-          </h1>
-          <Ornament className="mx-auto mt-5 w-56 text-gold/60 md:mx-0" />
-          <p className="mx-auto mt-6 max-w-md font-display text-2xl leading-snug text-parchment/90 md:mx-0">
+          </motion.h1>
+          <motion.div
+            initial={{ opacity: 0, scaleX: 0 }}
+            animate={{ opacity: 1, scaleX: 1 }}
+            transition={timing(1.1, 0.7)}
+            className="origin-center md:origin-left"
+          >
+            <Ornament className="mx-auto mt-5 w-56 text-gold/60 md:mx-0" />
+          </motion.div>
+          <motion.p
+            {...rise(0.9)}
+            className="mx-auto mt-6 max-w-md font-display text-2xl leading-snug text-parchment/90 md:mx-0"
+          >
             {m.hero.intro}
-          </p>
-          <div className="mt-9 flex flex-wrap justify-center gap-3 md:justify-start">
+          </motion.p>
+          <motion.div {...rise(1.1)} className="mt-9 flex flex-wrap justify-center gap-3 md:justify-start">
             <Link
               href="/reading"
-              className="rounded-full border border-gold/70 bg-gradient-to-b from-gold/25 to-gold/5 px-8 py-3 font-display text-xl text-gold-light shadow-[0_0_34px_-8px_rgb(201_164_92/0.7)] transition hover:from-gold/35"
+              className="btn-shine glow-pulse rounded-full border border-gold/70 bg-gradient-to-b from-gold/25 to-gold/5 px-8 py-3 font-display text-xl text-gold-light transition hover:scale-[1.03] hover:from-gold/35"
             >
               {m.hero.begin}
             </Link>
@@ -111,17 +152,32 @@ export function Hero() {
             >
               {m.hero.explore}
             </Link>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
         <div className="relative mx-auto h-[420px] w-full max-w-[420px] [perspective:1400px] sm:h-[480px]">
+          <div className="aura pointer-events-none absolute top-1/2 left-1/2 aspect-square w-[95%] -translate-x-1/2 -translate-y-[55%] rounded-full" aria-hidden="true" />
+          <div
+            className="pointer-events-none absolute top-1/2 left-1/2 aspect-square w-[86%] -translate-x-1/2 -translate-y-[55%]"
+            aria-hidden="true"
+          >
+            <div className="animate-slow-spin h-full w-full rounded-full border border-gold/15" style={{ animationDuration: "28s" }}>
+              {ORBIT_SPARKS.map((s, i) => (
+                <span
+                  key={i}
+                  className="absolute rounded-full bg-gold-light shadow-[0_0_10px_3px_rgb(232_210_154/0.7)]"
+                  style={{ top: s.top, left: s.left, width: s.size, height: s.size, marginTop: -s.size / 2, marginLeft: -s.size / 2 }}
+                />
+              ))}
+            </div>
+          </div>
           <motion.div style={{ rotateX: rotX, rotateY: rotY }} className="relative h-full w-full [transform-style:preserve-3d]">
             {[-2, -1, 1, 2].map((offset, i) => (
               <motion.div
                 key={offset}
                 initial={{ opacity: 0, rotate: 0, x: 0 }}
                 animate={{ opacity: 1, rotate: offset * 9, x: offset * 46, y: Math.abs(offset) * 14 }}
-                transition={{ duration: 1.2, delay: 0.25 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 1.2, delay: 0.25 + i * 0.08, ease }}
                 className="absolute top-1/2 left-1/2 w-[38%] -translate-x-1/2 -translate-y-1/2"
                 style={{ transformOrigin: "50% 120%" }}
               >
@@ -133,7 +189,7 @@ export function Hero() {
                 key={card.id}
                 initial={reduced ? false : { rotateY: 90, opacity: 0.4 }}
                 animate={{ rotateY: 0, opacity: 1 }}
-                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.9, ease }}
                 className="drop-shadow-[0_0_40px_rgb(201_164_92/0.35)]"
               >
                 <CardFront card={card} />
