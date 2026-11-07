@@ -28,7 +28,29 @@ export function SiteFooter() {
           <span aria-hidden="true"> · </span>
           <span>{m.footer.artwork}</span>
         </p>
+        <ReleaseStamp />
       </div>
     </footer>
+  );
+}
+
+const BUILT_AT = process.env.ARCANA_BUILT_AT ?? "";
+
+/** Version, commit and build time (UTC, so server and browser render the same text). */
+function ReleaseStamp() {
+  const commit = process.env.ARCANA_COMMIT;
+  return (
+    <p className="mt-4 font-mono text-[10px] tracking-wide opacity-70">
+      v{process.env.ARCANA_VERSION ?? "dev"}
+      {commit && ` · ${commit}`}
+      {BUILT_AT && (
+        <>
+          {" · "}
+          <time dateTime={BUILT_AT} title={BUILT_AT}>
+            {BUILT_AT.slice(0, 16).replace("T", " ")} UTC
+          </time>
+        </>
+      )}
+    </p>
   );
 }
