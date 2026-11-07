@@ -133,3 +133,14 @@ describe("reading engine", () => {
     expect(new ReadingError("rate_limited", "x", { retryAfterSeconds: 3 }).toBody().error.retryAfterSeconds).toBe(3);
   });
 });
+
+describe("archive reading phrasing", () => {
+  it("reads naturally around position labels and question punctuation", () => {
+    for (const language of ["en", "vi"] as const) {
+      const output = composeMockReading(buildReadingContext({ ...request("celtic-cross"), language }), language);
+      const text = [output.theme, output.summary, ...output.relationships, ...output.cards.map((c) => c.interpretation)].join("\n");
+      expect(text).not.toMatch(/\bthe The\b/);
+      expect(text).not.toMatch(/[?!.]["”]\./);
+    }
+  });
+});

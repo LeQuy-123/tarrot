@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/ui/SiteHeader";
 import { SettingsApplier } from "@/components/ui/SettingsApplier";
 import { SiteFooter } from "@/components/ui/SiteFooter";
 import { SkipLink } from "@/components/ui/SkipLink";
+import { OPEN_GRAPH_DEFAULTS, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -18,13 +19,22 @@ const inter = Inter({
   subsets: ["latin", "vietnamese"],
 });
 
+const description =
+  "An immersive 3D tarot reading chamber with an original 78-card deck and AI-assisted interpretations for reflection.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "ARCANA — The Astral Archive",
+    default: SITE_NAME,
     template: "%s · ARCANA",
   },
-  description:
-    "An immersive 3D tarot reading chamber with an original 78-card deck and AI-assisted interpretations for reflection.",
+  description,
+  applicationName: "ARCANA",
+  keywords: ["tarot", "tarot reading", "3D tarot", "Celtic Cross", "tarot card meanings", "bói bài tarot", "self-reflection"],
+  alternates: { canonical: "/" },
+  openGraph: { ...OPEN_GRAPH_DEFAULTS, title: SITE_NAME, description, url: "/" },
+  twitter: { card: "summary_large_image", title: SITE_NAME, description },
+  robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {

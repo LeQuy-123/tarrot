@@ -22,34 +22,40 @@ export interface ArchivePhrases {
 
 const lowerFirst = (text: string) => (text ? text[0].toLowerCase() + text.slice(1) : text);
 
+/** Closes a sentence that may end in a quoted question, without doubling its punctuation ("…city?”" not "…city?”."). */
+const endSentence = (text: string, quoted: string) => (/[.!?…]$/.test(quoted.trim()) ? text : `${text}.`);
+
+/** "The Present" → "the Present", "Outcome" → "the Outcome"; possessive labels ("Today's Lens") take no article. */
+const thePosition = (label: string) => (/^the /i.test(label) ? `the ${label.slice(4)}` : label.includes("'s ") ? label : `the ${label}`);
+
 const en: ArchivePhrases = {
   orientation: (o) => MESSAGES.en.common.orientation[o].toLowerCase(),
   element: (e) => e,
   theme: (archetype, spread, card, orientation, question) =>
-    `${archetype}: ${spread} centred on ${card} (${orientation})${question ? `, read in light of "${question}"` : ""}.`,
+    endSentence(`${archetype}: ${spread} centred on ${card} (${orientation})${question ? `, read in light of “${question.trim()}”` : ""}`, question),
   relationship: (a, posA, b, posB, kwA, kwB) =>
-    `${a} in ${posA} leads into ${b} in ${posB}: a movement from ${kwA} toward ${kwB}.`,
+    `${a} in ${thePosition(posA)} leads into ${b} in ${thePosition(posB)}: a movement from ${kwA} toward ${kwB}.`,
   sharedElement: (count, element) => `${count} cards share the element of ${element}, colouring the reading with its qualities.`,
   majors: (majors, total) =>
     `${majors} of ${total} cards ${majors === 1 ? "is a" : "are"} Major Arcana${majors === 1 ? " card" : ""}, suggesting larger life themes are in motion.`,
   reversed: (count) =>
     `${count} reversed card${count > 1 ? "s point" : " points"} to energy that is blocked, internal, or still forming.`,
   singleImage: (a, b) => `The spread rests on a single image: ${a} and ${b}.`,
-  card: (name, orientation, position, lead, outlook) => `${name}, ${orientation}, in the ${position} position. ${lead} ${outlook}`,
+  card: (name, orientation, position, lead, outlook) => `${name}, ${orientation}, in ${thePosition(position)} position. ${lead} ${outlook}`,
   questionFeel: (keyword) => `Where in your life do you already feel ${keyword}?`,
   questionTrust: (card) => `What would change if you trusted the message of ${card}?`,
   fallbackStep: (keyword) => `Choose one small action aligned with "${keyword}".`,
   summarySingle: (card, reversed, outlook) =>
     `Carry ${card}${reversed ? ", reversed," : ""} with you as a lens for what comes next. ${outlook} Treat this as a possibility to notice, not a verdict.`,
   summaryMulti: (card, reversed, position, outlook) =>
-    `Looking ahead, ${card}${reversed ? " reversed" : ""} in ${position} sets the tone: ${lowerFirst(outlook)} The other cards describe how you might get there; test them against your own experience.`,
+    `Looking ahead, ${card}${reversed ? " reversed" : ""} in ${thePosition(position)} sets the tone: ${lowerFirst(outlook)} The other cards describe how you might get there; test them against your own experience.`,
 };
 
 const vi: ArchivePhrases = {
   orientation: (o) => MESSAGES.vi.common.orientation[o].toLowerCase(),
   element: (e) => MESSAGES.vi.common.elements[e],
   theme: (archetype, spread, card, orientation, question) =>
-    `${archetype}: trải bài ${spread} xoay quanh ${card} (chiều ${orientation})${question ? `, soi chiếu câu hỏi “${question}”` : ""}.`,
+    endSentence(`${archetype}: trải bài ${spread} xoay quanh ${card} (chiều ${orientation})${question ? `, soi chiếu câu hỏi “${question.trim()}”` : ""}`, question),
   relationship: (a, posA, b, posB, kwA, kwB) =>
     `${a} ở vị trí ${posA} dẫn tới ${b} ở vị trí ${posB}: một chuyển động từ “${kwA}” hướng đến “${kwB}”.`,
   sharedElement: (count, element) => `${count} lá cùng thuộc nguyên tố ${element}, nhuộm màu cho cả trải bài bằng phẩm chất ấy.`,

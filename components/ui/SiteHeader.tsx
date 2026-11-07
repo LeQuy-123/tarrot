@@ -26,7 +26,7 @@ function LanguageToggle() {
           onClick={() => setLang(l)}
           aria-pressed={lang === l}
           title={l === "en" ? "English" : "Tiếng Việt"}
-          className={`rounded-full px-2 py-1 font-semibold tracking-wider uppercase transition-colors ${
+          className={`rounded-full px-1.5 py-1 font-semibold min-[360px]:px-2 tracking-wider uppercase transition-colors ${
             lang === l ? "bg-gold/20 text-gold-light" : "text-muted hover:text-parchment"
           }`}
         >
@@ -42,7 +42,7 @@ export function SiteHeader() {
   const m = useMessages();
   return (
     <header className="relative z-30 border-b border-hairline bg-void/60 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-2 px-3 sm:gap-4 sm:px-6">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-1.5 px-2 min-[360px]:gap-2 min-[360px]:px-3 sm:gap-4 sm:px-6">
         <Link href="/" className="group flex shrink-0 items-center gap-2.5" aria-label={m.nav.home}>
           <Sigil className="h-7 w-7 text-gold transition-transform duration-700 group-hover:rotate-45" />
           <span className="hidden font-display text-xl tracking-[0.28em] text-gold-light lg:inline">ARCANA</span>
@@ -57,7 +57,7 @@ export function SiteHeader() {
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`rounded-full px-2 py-1.5 text-[13px] whitespace-nowrap transition-colors sm:px-3 sm:text-sm ${
+                      className={`rounded-full px-1.5 py-1.5 text-xs whitespace-nowrap transition-colors min-[360px]:px-2 min-[360px]:text-[13px] sm:px-3 sm:text-sm ${
                         active ? "bg-gold/15 text-gold-light" : "text-muted hover:text-parchment"
                       }`}
                     >

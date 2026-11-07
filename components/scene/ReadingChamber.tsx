@@ -189,7 +189,7 @@ function ChamberContents(props: ChamberProps) {
 function ReadingChamber(props: ChamberProps) {
   return (
     <Canvas
-      shadows
+      shadows="percentage"
       dpr={[1, 1.75]}
       gl={{ antialias: true, powerPreference: "high-performance" }}
       camera={{ fov: 38, position: [0, 9, 7], near: 0.1, far: 120 }}

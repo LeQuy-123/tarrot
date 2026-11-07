@@ -83,7 +83,7 @@ export function Hero() {
       <div className="pointer-events-none absolute top-1/2 left-1/2 -z-10 aspect-square w-[150vmin] max-w-[1100px] -translate-x-1/2 -translate-y-1/2 text-gold/50">
         <Astrolabe />
       </div>
-      <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pt-14 pb-16 sm:px-6 md:grid-cols-[1.1fr_1fr] md:pt-20 md:pb-24">
+      <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] items-center gap-10 px-4 pt-14 pb-16 sm:px-6 md:grid-cols-[1.1fr_1fr] md:pt-20 md:pb-24">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -91,7 +91,7 @@ export function Hero() {
           className="text-center md:text-left"
         >
           <p className="text-xs tracking-[0.5em] text-gold uppercase">{m.hero.eyebrow}</p>
-          <h1 className="engraved mt-3 font-display text-7xl leading-[0.9] font-semibold tracking-[0.08em] sm:text-8xl lg:text-9xl">
+          <h1 className="engraved mt-3 font-display text-6xl leading-[0.9] min-[360px]:text-7xl font-semibold tracking-[0.08em] sm:text-8xl lg:text-9xl">
             ARCANA
           </h1>
           <Ornament className="mx-auto mt-5 w-56 text-gold/60 md:mx-0" />

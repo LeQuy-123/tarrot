@@ -50,6 +50,9 @@ Settings — the cards are still drawn and saved, and nothing is fabricated.
 Never prefix these with `NEXT_PUBLIC_`. The key is read only inside the `/api/reading` route handler and never
 reaches the browser bundle.
 
+**SEO:** `sitemap.xml`, `robots.txt`, canonical links and the share card use `NEXT_PUBLIC_SITE_URL` (public), which defaults to
+the Vercel production domain. Set it when serving from a custom domain.
+
 The Claude provider uses the official `@anthropic-ai/sdk` with structured outputs (a Zod schema), `effort: "medium"`,
 and server-side refusal fallbacks (`fallbacks: "default"`, beta `server-side-fallback-2026-07-01`) so a policy
 decline on the primary model is retried on the server's default fallback model. Remove those two fields in
